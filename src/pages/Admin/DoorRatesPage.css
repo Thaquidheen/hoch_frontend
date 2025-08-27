@@ -1,0 +1,723 @@
+/* DoorRatesPage.css */
+
+/* Base Page Styling */
+.door-rates-page {
+  min-height: 100vh;
+  background-color: #0a0a0a;
+  color: #ffffff;
+}
+
+/* Header Section */
+.door-rates-header {
+  background-color: #000000;
+  border-bottom: 1px solid #dc2626;
+  padding: 1.5rem;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.header-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.header-icon {
+  width: 2rem;
+  height: 2rem;
+  color: #dc2626;
+  flex-shrink: 0;
+}
+
+.header-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.page-title {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.page-subtitle {
+  font-size: 1rem;
+  color: #9ca3af;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* Button Styles */
+.btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  outline: none;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background-color: #dc2626;
+  color: #ffffff;
+  padding: 0.625rem 1.5rem;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: #b91c1c;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(220, 38, 38, 0.3);
+}
+
+.btn-secondary {
+  background-color: #374151;
+  color: #ffffff;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background-color: #4b5563;
+  transform: translateY(-1px);
+}
+
+.btn-secondary.loading {
+  background-color: #374151;
+  cursor: wait;
+}
+
+.btn-icon {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+}
+
+.btn-icon.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Main Content */
+.door-rates-content {
+  padding: 1.5rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Statistics Grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.stat-card {
+  background-color: #1a1a1a;
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid #dc2626;
+  transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(220, 38, 38, 0.15);
+}
+
+.stat-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.stat-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  color: #9ca3af;
+  margin: 0;
+  font-weight: 400;
+}
+
+.stat-value {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+  line-height: 1;
+}
+
+.stat-icon {
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stat-icon .icon {
+  width: 1.5rem;
+  height: 1.5rem;
+  color: #ffffff;
+}
+
+.stat-icon-red {
+  background-color: #dc2626;
+}
+
+.stat-icon-green {
+  background-color: #059669;
+}
+
+.stat-icon-blue {
+  background-color: #2563eb;
+}
+
+.stat-icon-purple {
+  background-color: #7c3aed;
+}
+
+/* Price Range Overview */
+.price-range-overview {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.range-card,
+.material-distribution {
+  background-color: #1a1a1a;
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid #dc2626;
+  transition: all 0.3s ease;
+}
+
+
+.range-card:hover,
+.material-distribution:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(220, 38, 38, 0.15);
+}
+
+.range-header,
+.distribution-header {
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #374151;
+}
+
+.range-header h3,
+.distribution-header h4 {
+  color: #ffffff;
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+}
+
+.range-header p,
+.distribution-header p {
+  color: #9ca3af;
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+.range-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.range-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 1rem;
+}
+
+.range-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  background-color: #0a0a0a;
+  border: 1px solid #374151;
+  border-radius: 0.5rem;
+  text-align: center;
+}
+
+.range-label {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.range-value {
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+.range-value.lowest {
+  color: #10b981;
+}
+
+.range-value.highest {
+  color: #ef4444;
+}
+
+.range-value.spread {
+  color: #f59e0b;
+}
+
+.range-value.percentage {
+  color: #8b5cf6;
+}
+
+/* Price Range Bar */
+.price-range-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.range-bar-container {
+  height: 0.5rem;
+  background-color: #374151;
+  border-radius: 0.25rem;
+  overflow: hidden;
+}
+
+.range-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #10b981 0%, #f59e0b 50%, #ef4444 100%);
+  border-radius: 0.25rem;
+  transition: width 0.3s ease;
+}
+
+.range-bar-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+
+/* Material Distribution */
+.distribution-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.distribution-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem;
+  background-color: #0a0a0a;
+  border: 1px solid #374151;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.distribution-item:hover {
+  border-color: #dc2626;
+  transform: translateX(2px);
+}
+
+.material-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.material-name {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #ffffff;
+  margin-bottom: 0.25rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.material-count {
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+
+.material-bar {
+  width: 60px;
+  height: 4px;
+  background-color: #374151;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.material-bar-fill {
+  height: 100%;
+  background-color: #dc2626;
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+/* Error Banner */
+.error-banner {
+  margin-bottom: 1.5rem;
+  background-color: #7f1d1d;
+  border: 1px solid #dc2626;
+  border-radius: 0.5rem;
+  padding: 1rem;
+}
+
+.error-content {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #fca5a5;
+}
+
+.error-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+}
+
+/* Notification Toast */
+.notification-toast {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 50;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid;
+  max-width: 24rem;
+  transition: all 0.3s ease;
+  animation: slideInRight 0.3s ease-out, fadeOut 0.3s ease-in 4.7s;
+  animation-fill-mode: both;
+}
+
+.notification-success {
+  background-color: #064e3b;
+  border-color: #059669;
+  color: #a7f3d0;
+}
+
+.notification-error {
+  background-color: #7f1d1d;
+  border-color: #dc2626;
+  color: #fca5a5;
+}
+
+.notification-info {
+  background-color: #1e3a8a;
+  border-color: #2563eb;
+  color: #93c5fd;
+}
+
+.notification-content {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.notification-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+}
+
+/* Notification Animations */
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .price-range-overview {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .door-rates-header {
+    padding: 1rem;
+  }
+  
+  .header-content {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+  
+  .header-info {
+    justify-content: center;
+    text-align: center;
+  }
+  
+  .header-actions {
+    justify-content: center;
+  }
+  
+  .door-rates-content {
+    padding: 1rem;
+  }
+  
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+  
+  .price-range-overview {
+    margin-bottom: 1rem;
+  }
+  
+  .page-title {
+    font-size: 1.5rem;
+  }
+  
+  .page-subtitle {
+    font-size: 0.875rem;
+  }
+  
+  .stat-value {
+    font-size: 1.5rem;
+  }
+  
+  .range-stats {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+  
+  .range-stat {
+    padding: 0.75rem;
+  }
+  
+  .notification-toast {
+    left: 1rem;
+    right: 1rem;
+    top: auto;
+    bottom: 1rem;
+    max-width: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .header-actions {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .btn {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .stat-content {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+  
+  .stat-icon {
+    align-self: center;
+  }
+
+  .range-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .distribution-item {
+    flex-direction: column;
+    gap: 0.5rem;
+    text-align: center;
+  }
+
+  .material-bar {
+    width: 100%;
+    height: 6px;
+  }
+
+  .material-name {
+    white-space: normal;
+  }
+}
+
+/* Focus Styles for Accessibility */
+.btn:focus-visible {
+  outline: 2px solid #dc2626;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+}
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+  .stat-card,
+  .range-card,
+  .material-distribution,
+  .range-stat,
+  .distribution-item {
+    border-width: 2px;
+  }
+  
+  .btn {
+    border: 2px solid;
+  }
+  
+  .btn-primary {
+    border-color: #ffffff;
+  }
+  
+  .btn-secondary {
+    border-color: #9ca3af;
+  }
+
+  .range-bar-fill,
+  .material-bar-fill {
+    box-shadow: 0 0 0 1px #ffffff;
+  }
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  .btn,
+  .stat-card,
+  .range-card,
+  .material-distribution,
+  .distribution-item,
+  .range-bar-fill,
+  .material-bar-fill,
+  .notification-toast {
+    transition: none;
+  }
+  
+  .btn:hover {
+    transform: none;
+  }
+  
+  .stat-card:hover,
+  .range-card:hover,
+  .material-distribution:hover {
+    transform: none;
+  }
+  
+  .distribution-item:hover {
+    transform: none;
+  }
+  
+  .btn-icon.spinning {
+    animation: none;
+  }
+  
+  @keyframes slideInRight {
+    from, to {
+      transform: none;
+      opacity: 1;
+    }
+  }
+  
+  @keyframes fadeOut {
+    from, to {
+      transform: none;
+      opacity: 1;
+    }
+  }
+}
+
+/* Print Styles */
+@media print {
+  .door-rates-page {
+    background: white !important;
+    color: black !important;
+  }
+  
+  .header-actions,
+  .notification-toast {
+    display: none !important;
+  }
+  
+  .door-rates-header {
+    background: white !important;
+    border-bottom: 2px solid black !important;
+  }
+  
+  .stat-card,
+  .range-card,
+  .material-distribution,
+  .range-stat,
+  .distribution-item {
+    background: white !important;
+    border: 1px solid black !important;
+  }
+
+  .page-title,
+  .stat-value,
+  .range-value,
+  .material-name {
+    color: black !important;
+  }
+
+  .range-header h3,
+  .distribution-header h4 {
+    color: black !important;
+  }
+
+  .range-bar-fill,
+  .material-bar-fill {
+    background: black !important;
+  }
+}

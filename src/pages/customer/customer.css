@@ -1,0 +1,32 @@
+
+
+/* Ensure the parent container allows horizontal scrolling */
+.scrollable-container {
+
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling on mobile */
+  }
+  
+  /* PrimeReact DataTable should always use full width */
+  .p-datatable {
+    width: 100%;
+    table-layout: auto; /* Columns dynamically adjust */
+    overflow: auto;
+  }
+  
+  /* Customize scrollbar for better user experience */
+  .scrollable-container::-webkit-scrollbar {
+    height: 8px; /* Height of horizontal scrollbar */
+  }
+  
+  .scrollable-container::-webkit-scrollbar-thumb {
+    background-color: #ccc; /* Scrollbar color */
+    border-radius: 4px;
+  }
+  
+  .scrollable-container::-webkit-scrollbar-track {
+    background-color: #f5f5f5; /* Track color */
+  }
+  .data-table {
+    min-width: 1200px; /* Set a minimum width for the table */
+  }
+  

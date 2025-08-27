@@ -1,0 +1,25 @@
+/* src/assets/css/Login.css */
+body {
+    background-color: #f9f9f9;
+    font-family: 'Poppins', sans-serif;
+  }
+  
+  .login-container {
+    max-width: 400px;
+    margin: 0 auto;
+    padding: 1.5rem;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  .login-logo img {
+    display: block;
+    margin: 0 auto 1rem;
+    width: 150px;
+  }
+  
+  button {
+    transition: background-color 0.3s ease;
+  }
+  
