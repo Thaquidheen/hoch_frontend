@@ -1,26 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  Plus, 
-  Search, 
-  Filter, 
-  Download, 
-  Upload,
-  Lightbulb,
-  Settings,
-  Users,
-  Package,
-  Calculator,
-  Eye,
-  Edit3,
-  Trash2,
-  MoreVertical
+  Plus, Search, Filter, Download, Upload, Lightbulb, Settings, 
+  Users, Package, Calculator, Eye, Edit3, Trash2, MoreVertical
 } from 'lucide-react';
 import LightingRuleForm from '../../components/masters/lighting-rules/LightingRuleForm';
-// import CategoryTester from '../../components/masters/lighting-rules/CategoryTester';
 import useLightingRules from '../../hooks/masters/useLightingRules';
 import useMaterials from '../../hooks/masters/useMaterials';
 import useCustomers from '../../hooks/masters/useCustomers';
+import useCabinetTypes from '../../hooks/masters/useCabinetTypes';
 import './LightingRulesPage.css';
+
 const LightingRulesPage = () => {
   // State Management
   const [showForm, setShowForm] = useState(false);
@@ -34,29 +23,23 @@ const LightingRulesPage = () => {
 
   // Hooks
   const {
-    lightingRules,
-    loading,
-    createLightingRule,
-    updateLightingRule,
-    deleteLightingRule,
-    toggleRuleStatus,
-    exportRules,
-    importRules
+    lightingRules, loading, createLightingRule, updateLightingRule, 
+    deleteLightingRule, toggleRuleStatus, exportRules, importRules
   } = useLightingRules();
 
   const { materials } = useMaterials();
   const { customers } = useCustomers();
+  const { cabinetTypes } = useCabinetTypes();
 
   // Filter lighting rules
   const filteredRules = lightingRules.filter(rule => {
+    const materialDetails = materials.find(m => m.id === rule.cabinet_material);
     const matchesSearch = rule.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         rule.cabinet_material?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCustomer = !selectedCustomer || 
-                           (selectedCustomer === 'global' ? rule.is_global : rule.customer?.toString() === selectedCustomer);
-    const matchesMaterial = !selectedMaterial || rule.cabinet_material === selectedMaterial;
+                          materialDetails?.name?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCustomer = !selectedCustomer || (selectedCustomer === 'global' ? rule.is_global : rule.customer?.toString() === selectedCustomer);
+    const matchesMaterial = !selectedMaterial || rule.cabinet_material?.toString() === selectedMaterial;
     const matchesTier = !selectedTier || rule.budget_tier === selectedTier;
     const matchesStatus = showInactive || rule.is_active;
-
     return matchesSearch && matchesCustomer && matchesMaterial && matchesTier && matchesStatus;
   });
 
@@ -88,298 +71,180 @@ const LightingRulesPage = () => {
   };
 
   // Format currency
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR'
-    }).format(amount || 0);
-  };
+  const formatCurrency = (amount) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(amount || 0);
 
-  // Get customer name
+  // Get customer or material name from ID for display
   const getCustomerName = (rule) => {
     if (rule.is_global) return 'Global';
     const customer = customers.find(c => c.id === rule.customer);
-    return customer ? customer.name : 'Unknown Customer';
+    return customer ? customer.name : 'Unknown';
   };
 
+  const getMaterialName = (materialId) => {
+    const material = materials.find(m => m.id === materialId);
+    return material ? material.name : 'Unknown';
+  };
+  
   // Get rule scope badge class
   const getScopeBadgeClass = (rule) => {
-    return rule.is_global ? 'scope-global' : 'scope-customer';
+    return rule.is_global ? 'lightingrulespage-scope-global' : 'lightingrulespage-scope-customer';
   };
 
   return (
-    <div className="lighting-rules-page">
+    <div className="lightingrulespage-page">
       {/* Header */}
-      <div className="page-header">
-        <div className="header-content">
-          <div className="header-info">
-            <Lightbulb className="header-icon" />
-            <div className="header-text">
-              <h1 className="page-title">Lighting Rules Management</h1>
-              <p className="page-subtitle">
+      <div className="lightingrulespage-page-header">
+        <div className="lightingrulespage-header-content">
+          <div className="lightingrulespage-header-info">
+            <Lightbulb className="lightingrulespage-header-icon" />
+            <div className="lightingrulespage-header-text">
+              <h1 className="lightingrulespage-page-title">Lighting Rules Management</h1>
+              <p className="lightingrulespage-page-subtitle">
                 Multi-category lighting rules for different materials and customer preferences
               </p>
             </div>
           </div>
-          <div className="header-actions">
-            <button 
-              onClick={() => setShowTester(true)}
-              className="action-btn secondary"
-            >
-              <Calculator className="btn-icon" />
-              Test Calculator
+          <div className="lightingrulespage-header-actions">
+            <button onClick={() => setShowTester(true)} className="lightingrulespage-action-btn lightingrulespage-secondary">
+              <Calculator className="lightingrulespage-btn-icon" /> Test Calculator
             </button>
-            <button 
-              onClick={() => {
-                setEditingRule(null);
-                setShowForm(true);
-              }}
-              className="action-btn primary"
-            >
-              <Plus className="btn-icon" />
-              Add Lighting Rule
+            <button onClick={() => { setEditingRule(null); setShowForm(true); }} className="lightingrulespage-action-btn lightingrulespage-primary">
+              <Plus className="lightingrulespage-btn-icon" /> Add Lighting Rule
             </button>
           </div>
         </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="stats-section">
-        <div className="stats-grid">
-          <div className="stat-card">
-            <div className="stat-header">
-              <Settings className="stat-icon" />
-              <span className="stat-label">Total Rules</span>
-            </div>
-            <div className="stat-value">{lightingRules.length}</div>
+      <div className="lightingrulespage-stats-section">
+        <div className="lightingrulespage-stats-grid">
+          <div className="lightingrulespage-stat-card">
+            <div className="lightingrulespage-stat-header"><Settings className="lightingrulespage-stat-icon" /><span className="lightingrulespage-stat-label">Total Rules</span></div>
+            <div className="lightingrulespage-stat-value">{lightingRules.length}</div>
           </div>
-          <div className="stat-card">
-            <div className="stat-header">
-              <Users className="stat-icon" />
-              <span className="stat-label">Customer-Specific</span>
-            </div>
-            <div className="stat-value">
-              {lightingRules.filter(r => !r.is_global).length}
-            </div>
+          <div className="lightingrulespage-stat-card">
+            <div className="lightingrulespage-stat-header"><Users className="lightingrulespage-stat-icon" /><span className="lightingrulespage-stat-label">Customer-Specific</span></div>
+            <div className="lightingrulespage-stat-value">{lightingRules.filter(r => !r.is_global).length}</div>
           </div>
-          <div className="stat-card">
-            <div className="stat-header">
-              <Package className="stat-icon" />
-              <span className="stat-label">Materials Covered</span>
-            </div>
-            <div className="stat-value">
-              {new Set(lightingRules.map(r => r.cabinet_material)).size}
-            </div>
+          <div className="lightingrulespage-stat-card">
+            <div className="lightingrulespage-stat-header"><Package className="lightingrulespage-stat-icon" /><span className="lightingrulespage-stat-label">Materials Covered</span></div>
+            <div className="lightingrulespage-stat-value">{new Set(lightingRules.map(r => r.cabinet_material)).size}</div>
           </div>
-          <div className="stat-card">
-            <div className="stat-header">
-              <Eye className="stat-icon" />
-              <span className="stat-label">Active Rules</span>
-            </div>
-            <div className="stat-value">
-              {lightingRules.filter(r => r.is_active).length}
-            </div>
+          <div className="lightingrulespage-stat-card">
+            <div className="lightingrulespage-stat-header"><Eye className="lightingrulespage-stat-icon" /><span className="lightingrulespage-stat-label">Active Rules</span></div>
+            <div className="lightingrulespage-stat-value">{lightingRules.filter(r => r.is_active).length}</div>
           </div>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="filters-section">
-        <div className="filters-content">
-          <div className="search-container">
-            <Search className="search-icon" />
-            <input
-              type="text"
-              placeholder="Search by rule name or material..."
-              className="search-input"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+      <div className="lightingrulespage-filters-section">
+        <div className="lightingrulespage-filters-content">
+          <div className="lightingrulespage-search-container">
+            <Search className="lightingrulespage-search-icon" />
+            <input type="text" placeholder="Search by rule name or material..." className="lightingrulespage-search-input" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
           </div>
-
-          <div className="filter-group">
-            <select
-              className="filter-select"
-              value={selectedCustomer}
-              onChange={(e) => setSelectedCustomer(e.target.value)}
-            >
+          <div className="lightingrulespage-filter-group">
+            <select className="lightingrulespage-filter-select" value={selectedCustomer} onChange={(e) => setSelectedCustomer(e.target.value)}>
               <option value="">All Customers</option>
               <option value="global">Global Rules</option>
-              {customers.map(customer => (
-                <option key={customer.id} value={customer.id}>
-                  {customer.name}
-                </option>
-              ))}
+              {customers.map(customer => <option key={customer.id} value={customer.id}>{customer.name}</option>)}
             </select>
-
-            <select
-              className="filter-select"
-              value={selectedMaterial}
-              onChange={(e) => setSelectedMaterial(e.target.value)}
-            >
+            <select className="lightingrulespage-filter-select" value={selectedMaterial} onChange={(e) => setSelectedMaterial(e.target.value)}>
               <option value="">All Materials</option>
-              {cabinetMaterials.map(material => (
-                <option key={material.id} value={material.name}>
-                  {material.name}
-                </option>
-              ))}
+              {cabinetMaterials.map(material => <option key={material.id} value={material.id}>{material.name}</option>)}
             </select>
-
-            <select
-              className="filter-select"
-              value={selectedTier}
-              onChange={(e) => setSelectedTier(e.target.value)}
-            >
+            <select className="lightingrulespage-filter-select" value={selectedTier} onChange={(e) => setSelectedTier(e.target.value)}>
               <option value="">All Tiers</option>
               <option value="LUXURY">Luxury</option>
               <option value="ECONOMY">Economy</option>
             </select>
-
-            <button
-              onClick={() => setShowInactive(!showInactive)}
-              className={`toggle-btn ${showInactive ? 'active' : ''}`}
-            >
+            <button onClick={() => setShowInactive(!showInactive)} className={`lightingrulespage-toggle-btn ${showInactive ? 'lightingrulespage-active' : ''}`}>
               {showInactive ? 'Hide Inactive' : 'Show Inactive'}
             </button>
           </div>
         </div>
-
-        <div className="filter-actions">
-          <button onClick={exportRules} className="action-btn secondary">
-            <Download className="btn-icon" />
-            Export
-          </button>
-          <button onClick={importRules} className="action-btn secondary">
-            <Upload className="btn-icon" />
-            Import
-          </button>
+        <div className="lightingrulespage-filter-actions">
+          <button onClick={exportRules} className="lightingrulespage-action-btn lightingrulespage-secondary"><Download className="lightingrulespage-btn-icon" /> Export</button>
+          <button onClick={() => document.getElementById('import-input')?.click()} className="lightingrulespage-action-btn lightingrulespage-secondary"><Upload className="lightingrulespage-btn-icon" /> Import</button>
+          <input type="file" id="import-input" style={{ display: 'none' }} onChange={(e) => importRules(e.target.files[0])} accept=".csv" />
         </div>
       </div>
 
       {/* Rules Table */}
-      <div className="rules-table-container">
-        <div className="table-header">
-          <h3 className="table-title">
-            Lighting Rules ({filteredRules.length})
-          </h3>
+      <div className="lightingrulespage-rules-table-container">
+        <div className="lightingrulespage-table-header">
+          <h3 className="lightingrulespage-table-title">Lighting Rules ({filteredRules.length})</h3>
         </div>
-
-        <div className="table-wrapper">
-          <table className="rules-table">
+        <div className="lightingrulespage-table-wrapper">
+          <table className="lightingrulespage-rules-table">
             <thead>
               <tr>
-                <th>Rule Details</th>
-                <th>Scope</th>
-                <th>Material & Tier</th>
-                <th>LED Rate</th>
-                <th>Spot Rate</th>
-                <th>Categories</th>
-                <th>Status</th>
-                <th>Actions</th>
+                <th>Rule Details</th><th>Scope</th><th>Material & Tier</th><th>LED Rate</th><th>Spot Rate</th><th>Categories</th><th>Status</th><th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {filteredRules.length === 0 ? (
+              {loading ? (
+                <tr><td colSpan="8" className="lightingrulespage-empty-row"><div className="lightingrulespage-empty-state">Loading rules...</div></td></tr>
+              ) : filteredRules.length === 0 ? (
                 <tr>
-                  <td colSpan="8" className="empty-row">
-                    <div className="empty-state">
-                      <Lightbulb className="empty-icon" />
+                  <td colSpan="8" className="lightingrulespage-empty-row">
+                    <div className="lightingrulespage-empty-state">
+                      <Lightbulb className="lightingrulespage-empty-icon" />
                       <p>No lighting rules found</p>
-                      <span>Create your first lighting rule to get started</span>
+                      <span>Create your first lighting rule or adjust filters to get started.</span>
                     </div>
                   </td>
                 </tr>
               ) : (
                 filteredRules.map((rule) => (
-                  <tr key={rule.id} className={`table-row ${!rule.is_active ? 'inactive' : ''}`}>
+                  <tr key={rule.id} className={`lightingrulespage-table-row ${!rule.is_active ? 'lightingrulespage-inactive' : ''}`}>
                     <td>
-                      <div className="rule-details">
-                        <div className="rule-name">{rule.name}</div>
-                        <div className="rule-dates">
+                      <div className="lightingrulespage-rule-details">
+                        <div className="lightingrulespage-rule-name">{rule.name}</div>
+                        <div className="lightingrulespage-rule-dates">
                           From: {new Date(rule.effective_from).toLocaleDateString()}
-                          {rule.effective_to && (
-                            <span> • To: {new Date(rule.effective_to).toLocaleDateString()}</span>
-                          )}
+                          {rule.effective_to && (<span> • To: {new Date(rule.effective_to).toLocaleDateString()}</span>)}
                         </div>
                       </div>
                     </td>
+                    <td><span className={`lightingrulespage-scope-badge ${getScopeBadgeClass(rule)}`}>{getCustomerName(rule)}</span></td>
                     <td>
-                      <span className={`scope-badge ${getScopeBadgeClass(rule)}`}>
-                        {getCustomerName(rule)}
-                      </span>
-                    </td>
-                    <td>
-                      <div className="material-tier">
-                        <div className="material-name">{rule.cabinet_material}</div>
-                        <span className={`tier-badge tier-${rule.budget_tier.toLowerCase()}`}>
-                          {rule.budget_tier}
-                        </span>
+                      <div className="lightingrulespage-material-tier">
+                        <div className="lightingrulespage-material-name">{getMaterialName(rule.cabinet_material)}</div>
+                        <span className={`lightingrulespage-tier-badge lightingrulespage-tier-${rule.budget_tier.toLowerCase()}`}>{rule.budget_tier}</span>
                       </div>
                     </td>
                     <td>
-                      <div className="rate-display">
-                        <span className="rate-amount">
-                          {formatCurrency(rule.led_strip_rate_per_mm)}
-                        </span>
-                        <span className="rate-unit">per mm</span>
+                      <div className="lightingrulespage-rate-display">
+                        <span className="lightingrulespage-rate-amount">{formatCurrency(rule.led_strip_rate_per_mm)}</span>
+                        <span className="lightingrulespage-rate-unit">per mm</span>
                       </div>
                     </td>
                     <td>
-                      <div className="rate-display">
-                        <span className="rate-amount">
-                          {formatCurrency(rule.spot_light_rate_per_cabinet)}
-                        </span>
-                        <span className="rate-unit">per cabinet</span>
+                      <div className="lightingrulespage-rate-display">
+                        <span className="lightingrulespage-rate-amount">{formatCurrency(rule.spot_light_rate_per_cabinet)}</span>
+                        <span className="lightingrulespage-rate-unit">per cabinet</span>
                       </div>
                     </td>
                     <td>
-                      <div className="categories-display">
-                        {rule.applies_to_wall_cabinets && (
-                          <span className="category-tag wall">Wall</span>
-                        )}
-                        {rule.applies_to_base_cabinets && (
-                          <span className="category-tag base">Base</span>
-                        )}
-                        {rule.applies_to_work_top && (
-                          <span className="category-tag worktop">Work Top</span>
-                        )}
-                        {rule.applies_to_tall_cabinets && (
-                          <span className="category-tag tall">Tall</span>
-                        )}
+                      <div className="lightingrulespage-categories-display">
+                        {rule.applies_to_wall_cabinets && (<span className="lightingrulespage-category-tag lightingrulespage-wall">Wall</span>)}
+                        {rule.applies_to_base_cabinets && (<span className="lightingrulespage-category-tag lightingrulespage-base">Base</span>)}
+                        {rule.applies_to_work_top && (<span className="lightingrulespage-category-tag lightingrulespage-worktop">Work Top</span>)}
+                        {rule.applies_to_tall_cabinets && (<span className="lightingrulespage-category-tag lightingrulespage-tall">Tall</span>)}
                       </div>
                     </td>
                     <td>
-                      <button
-                        onClick={() => toggleRuleStatus(rule.id, !rule.is_active)}
-                        className="status-toggle"
-                      >
-                        <span className={`status-badge ${rule.is_active ? 'active' : 'inactive'}`}>
-                          {rule.is_active ? 'Active' : 'Inactive'}
-                        </span>
+                      <button onClick={() => toggleRuleStatus(rule.id, !rule.is_active)} className="lightingrulespage-status-toggle">
+                        <span className={`lightingrulespage-status-badge ${rule.is_active ? 'lightingrulespage-active' : 'lightingrulespage-inactive'}`}>{rule.is_active ? 'Active' : 'Inactive'}</span>
                       </button>
                     </td>
                     <td>
-                      <div className="action-buttons">
-                        <button
-                          onClick={() => {
-                            setEditingRule(rule);
-                            setShowForm(true);
-                          }}
-                          className="action-btn-small edit"
-                          title="Edit rule"
-                        >
-                          <Edit3 className="btn-icon-small" />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteRule(rule.id)}
-                          className="action-btn-small delete"
-                          title="Delete rule"
-                        >
-                          <Trash2 className="btn-icon-small" />
-                        </button>
-                        <button className="action-btn-small more">
-                          <MoreVertical className="btn-icon-small" />
-                        </button>
+                      <div className="lightingrulespage-action-buttons">
+                        <button onClick={() => { setEditingRule(rule); setShowForm(true); }} className="lightingrulespage-action-btn-small lightingrulespage-edit" title="Edit rule"><Edit3 className="lightingrulespage-btn-icon-small" /></button>
+                        <button onClick={() => handleDeleteRule(rule.id)} className="lightingrulespage-action-btn-small lightingrulespage-delete" title="Delete rule"><Trash2 className="lightingrulespage-btn-icon-small" /></button>
+                        <button className="lightingrulespage-action-btn-small lightingrulespage-more"><MoreVertical className="lightingrulespage-btn-icon-small" /></button>
                       </div>
                     </td>
                   </tr>
@@ -396,20 +261,11 @@ const LightingRulesPage = () => {
         lightingRule={editingRule}
         materials={cabinetMaterials}
         customers={customers}
+        cabinetTypes={cabinetTypes}
         onSave={handleSaveRule}
-        onCancel={() => {
-          setShowForm(false);
-          setEditingRule(null);
-        }}
+        onCancel={() => { setShowForm(false); setEditingRule(null); }}
         loading={loading}
       />
-
-      {/* <CategoryTester
-        isOpen={showTester}
-        lightingRules={lightingRules}
-        materials={cabinetMaterials}
-        onClose={() => setShowTester(false)}
-      /> */}
     </div>
   );
 };

@@ -20,10 +20,14 @@ import {
 import LineItemsList from '../../components/quotations/projects/LineItemsList';
 import LineItemForm from '../../components/quotations/projects/LineItemForm';
 import ProjectMultiLightingCalculator from '../../components/masters/lighting-rules/ProjectMultiLightingCalculator';
+import ProjectLightingItemsList from '../../components/masters/lighting-rules/ProjectLightingItemsList';
+import LightingItemForm from '../../components/masters/lighting-rules/LightingItemForm';
 import useProjects from '../../hooks/quotations/useProjects';
 import useLineItems from '../../hooks/quotations/useLineItems';
 import useLightingRules from '../../hooks/masters/useLightingRules';
-import './ProjectDetailPage.css'
+import { enhancedLightingApi } from '../../service/masters/lightingRulesApi';
+import './ProjectDetailPage.css';
+
 const ProjectDetailPage = () => {
   const { projectId } = useParams();
   const navigate = useNavigate();
@@ -35,6 +39,10 @@ const ProjectDetailPage = () => {
   const [notification, setNotification] = useState(null);
   const [activeTab, setActiveTab] = useState('line-items');
   const [lightingConfig, setLightingConfig] = useState(null);
+  const [lightingItems, setLightingItems] = useState([]);
+  const [showLightingItemForm, setShowLightingItemForm] = useState(false);
+  const [editingLightingItem, setEditingLightingItem] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   // Hooks
   const {
@@ -63,6 +71,22 @@ const ProjectDetailPage = () => {
   } = useLineItems(projectId);
 
   const { lightingRules } = useLightingRules();
+
+  // Fetch lighting items when project changes
+  useEffect(() => {
+    const fetchLightingItems = async () => {
+      if (project?.id) {
+        try {
+          const response = await enhancedLightingApi.getLightingItems(project.id);
+          setLightingItems(response);
+        } catch (error) {
+          console.error('Failed to fetch lighting items:', error);
+        }
+      }
+    };
+    
+    fetchLightingItems();
+  }, [project]);
 
   // Memoized calculations including lighting
   const lineItemsStats = useMemo(() => ({
@@ -230,6 +254,134 @@ const ProjectDetailPage = () => {
     showNotification('success', 'Lighting configuration updated');
   };
 
+  // New handlers for multiple lighting items
+const handleAutoCreateLightingItems = async () => {
+  try {
+    setLoading(true);
+    
+    // This now properly handles the two-step process:
+    // 1. Get/create lighting configuration
+    // 2. Call auto_create_items action on that configuration
+    const response = await enhancedLightingApi.autoCreateLightingItems(projectId);
+    
+    // Refresh project data and lighting items
+    const projectData = await getProjectById(projectId);
+    if (projectData.success) setProject(projectData.data);
+    
+    // Fetch updated lighting items
+    const updatedItems = await enhancedLightingApi.getLightingItems(projectId);
+    setLightingItems(updatedItems);
+    
+    // Show success message with count from response
+    const createdCount = response.created_items?.length || response.created_items || 0;
+    showNotification('success', `${createdCount} lighting items created successfully`);
+    
+  } catch (error) {
+    console.error('Auto-create lighting items error:', error);
+    showNotification('error', error.message || 'Failed to create lighting items');
+  } finally {
+    setLoading(false);
+  }
+};
+
+  const handleSaveLightingItem = async (itemData) => {
+    try {
+      setLoading(true);
+      
+      const response = itemData.id
+        ? await enhancedLightingApi.updateLightingItem(itemData.id, itemData)
+        : await enhancedLightingApi.createLightingItem(itemData);
+      
+      // Refresh project data
+      const projectData = await getProjectById(projectId);
+      if (projectData.success) setProject(projectData.data);
+      
+      // Fetch updated lighting items
+      const updatedItems = await enhancedLightingApi.getLightingItems(projectId);
+      setLightingItems(updatedItems);
+      
+      showNotification('success', `Lighting item ${itemData.id ? 'updated' : 'created'} successfully`);
+      
+      return { success: true, data: response };
+    } catch (error) {
+      showNotification('error', error.message || 'Failed to save lighting item');
+      return { success: false, error: error.message };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleToggleLightingItem = async (itemId, isActive) => {
+    try {
+      setLoading(true);
+      await enhancedLightingApi.toggleLightingItem(itemId, isActive);
+      
+      // Refresh project data
+      const projectData = await getProjectById(projectId);
+      if (projectData.success) setProject(projectData.data);
+      
+      // Fetch updated lighting items
+      const updatedItems = await enhancedLightingApi.getLightingItems(projectId);
+      setLightingItems(updatedItems);
+      
+      showNotification('success', `Lighting item ${isActive ? 'activated' : 'deactivated'} successfully`);
+    } catch (error) {
+      showNotification('error', error.message || 'Failed to toggle lighting item');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteLightingItem = async (itemId) => {
+    if (!window.confirm('Are you sure you want to delete this lighting item?')) {
+      return;
+    }
+    
+    try {
+      setLoading(true);
+      await enhancedLightingApi.deleteLightingItem(itemId);
+      
+      // Refresh project data
+      const projectData = await getProjectById(projectId);
+      if (projectData.success) setProject(projectData.data);
+      
+      // Fetch updated lighting items
+      const updatedItems = await enhancedLightingApi.getLightingItems(projectId);
+      setLightingItems(updatedItems);
+      
+      showNotification('success', 'Lighting item deleted successfully');
+    } catch (error) {
+      showNotification('error', error.message || 'Failed to delete lighting item');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUpdateLightingTotals = async () => {
+  try {
+    setLoading(true);
+    
+    // First get the lighting configuration to call recalculate_totals action
+    const config = await enhancedLightingApi.getLightingConfiguration(projectId);
+    
+    // Call the recalculate_totals action on the configuration
+    await api.post(`api/pricing/lighting-configurations/${config.id}/recalculate_totals/`);
+    
+    // Also recalculate project totals to include lighting
+    await recalculateProjectTotals(projectId);
+    
+    // Refresh project data
+    const projectData = await getProjectById(projectId);
+    if (projectData.success) setProject(projectData.data);
+    
+    showNotification('success', 'Lighting totals updated successfully');
+  } catch (error) {
+    console.error('Update lighting totals error:', error);
+    showNotification('error', error.message || 'Failed to update lighting totals');
+  } finally {
+    setLoading(false);
+  }
+};
   // Helper Functions
   const formatCurrency = (amount) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(amount || 0);
 
@@ -276,7 +428,7 @@ const ProjectDetailPage = () => {
               </div>
             </div>
             <div className="projectdetail-project-actions">
-              <button onClick={handleRecalculateProject} className="projectdetail-action-btn projectdetail-secondary" disabled={projectLoading}>
+              <button onClick={handleRecalculateProject} className="projectdetail-action-btn projectdetail-secondary" disabled={projectLoading || loading}>
                 <Calculator className="projectdetail-btn-icon" /> Recalculate Totals
               </button>
               <button className="projectdetail-action-btn projectdetail-primary">
@@ -371,6 +523,7 @@ const ProjectDetailPage = () => {
           </button>
           <button className={`projectdetail-tab-button ${activeTab === 'lighting' ? 'active' : ''}`} onClick={() => setActiveTab('lighting')}>
             <Lightbulb className="projectdetail-tab-icon" /> Multi-Category Lighting
+            {lightingItems.length > 0 && <span className="tab-count">{lightingItems.length}</span>}
           </button>
           <button className={`projectdetail-tab-button ${activeTab === 'accessories' ? 'active' : ''}`} onClick={() => setActiveTab('accessories')}>
             <Layers className="projectdetail-tab-icon" /> Accessories
@@ -396,9 +549,52 @@ const ProjectDetailPage = () => {
             />
           )}
           
-          {/* Enhanced Multi-Category Lighting Tab */}
+          {/* Enhanced Multi-Category Lighting Tab with multiple lighting items */}
           {activeTab === 'lighting' && (
             <div className="projectdetail-lighting-tab">
+              <div className="lighting-header">
+                <h3 className="lighting-section-title">Cabinet-Specific Lighting Configuration</h3>
+                <div className="lighting-actions">
+                  <button 
+                    className="lighting-action-btn secondary"
+                    onClick={handleAutoCreateLightingItems}
+                    disabled={loading}
+                  >
+                    <Plus className="btn-icon" />
+                    Auto-Create Lighting Items
+                  </button>
+                  <button 
+                    className="lighting-action-btn primary"
+                    onClick={handleUpdateLightingTotals}
+                    disabled={loading}
+                  >
+                    <Calculator className="btn-icon" />
+                    Recalculate Lighting
+                  </button>
+                </div>
+              </div>
+              
+              <ProjectLightingItemsList 
+                project={project}
+                lightingItems={lightingItems}
+                lightingRules={lightingRules.filter(rule => 
+                  rule.is_active && (
+                    rule.is_global || rule.customer === project.customer
+                  )
+                )}
+                cabinetTypes={cabinetTypes}
+                materials={materials}
+                loading={loading}
+                 onSaveItem={handleSaveLightingItem}
+                onAddItem={() => { setEditingLightingItem(null); setShowLightingItemForm(true); }}
+                onEditItem={(item) => { setEditingLightingItem(item); setShowLightingItemForm(true); }}
+                onDeleteItem={handleDeleteLightingItem}
+                onToggleItem={handleToggleLightingItem}
+                formatCurrency={formatCurrency}
+              />
+              
+              <div className="lighting-section-divider"></div>
+              
               <ProjectMultiLightingCalculator
                 project={project}
                 lineItems={lineItems}
@@ -407,7 +603,8 @@ const ProjectDetailPage = () => {
                     rule.is_global || rule.customer === project.customer
                   )
                 )}
-                onUpdateProjectTotals={handleRecalculateProject}
+                lightingItems={lightingItems}
+                onUpdateProjectTotals={handleUpdateLightingTotals}
                 onChange={handleLightingConfigChange}
               />
             </div>
@@ -429,6 +626,7 @@ const ProjectDetailPage = () => {
         </div>
       </div>
 
+      {/* Line Item Form */}
       <LineItemForm
         isOpen={showLineItemForm}
         onCancel={() => { setShowLineItemForm(false); setEditingLineItem(null); }}
@@ -441,6 +639,23 @@ const ProjectDetailPage = () => {
         onPreviewCalculation={calculatePricingPreview}
         loading={lineItemsLoading}
         calculating={calculating[editingLineItem?.id]}
+      />
+
+      {/* Lighting Item Form */}
+      <LightingItemForm
+        isOpen={showLightingItemForm}
+        lightingItem={editingLightingItem}
+        project={project}
+        lightingRules={lightingRules.filter(rule => 
+          rule.is_active && (
+            rule.is_global || rule.customer === project.customer
+          )
+        )}
+        cabinetTypes={cabinetTypes}
+        materials={materials}
+        onSave={handleSaveLightingItem}
+        onCancel={() => { setShowLightingItemForm(false); setEditingLightingItem(null); }}
+        loading={loading}
       />
 
       {notification && (

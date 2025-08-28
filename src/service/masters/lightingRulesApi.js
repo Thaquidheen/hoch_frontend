@@ -7,7 +7,7 @@ const lightingRulesApi = {
   getAll: async (params = {}) => {
     try {
       const response = await api.get('api/pricing/lighting-rules/', { params });
-      return response.data;
+      return Array.isArray(response.data) ? response.data : response.data.results || [];
     } catch (error) {
       console.error('Lighting Rules API - getAll error:', error);
       const errorMessage = error.response?.data?.detail || 
@@ -130,11 +130,11 @@ const lightingRulesApi = {
     }
   },
 
-  // GET /api/pricing/lighting-rules/current-rates/ - Get current active rates
+  // GET /api/pricing/lighting-rules/current_rates/ - Get current active rates
   getCurrentRates: async (params = {}) => {
     try {
-      const response = await api.get('api/pricing/lighting-rules/current-rates/', { params });
-      return response.data;
+      const response = await api.get('api/pricing/lighting-rules/current_rates/', { params });
+      return Array.isArray(response.data) ? response.data : response.data.results || [];
     } catch (error) {
       console.error('Lighting Rules API - getCurrentRates error:', error);
       const errorMessage = error.response?.data?.detail || 
@@ -143,10 +143,10 @@ const lightingRulesApi = {
     }
   },
 
-  // POST /api/pricing/lighting-rules/{id}/test-calculation/ - Test calculation with sample data
+  // POST /api/pricing/lighting-rules/{id}/test_calculation/ - Test calculation with sample data
   testCalculation: async (id, testData) => {
     try {
-      const response = await api.post(`api/pricing/lighting-rules/${id}/test-calculation/`, testData);
+      const response = await api.post(`api/pricing/lighting-rules/${id}/test_calculation/`, testData);
       return response.data;
     } catch (error) {
       console.error('Lighting Rules API - testCalculation error:', error);
@@ -162,7 +162,7 @@ const lightingRulesApi = {
       const response = await api.get('api/pricing/lighting-rules/', { 
         params: { cabinet_material: materialId } 
       });
-      return response.data;
+      return Array.isArray(response.data) ? response.data : response.data.results || [];
     } catch (error) {
       console.error('Lighting Rules API - getByMaterial error:', error);
       const errorMessage = error.response?.data?.detail || 
@@ -177,7 +177,7 @@ const lightingRulesApi = {
       const response = await api.get('api/pricing/lighting-rules/', { 
         params: { budget_tier: budgetTier } 
       });
-      return response.data;
+      return Array.isArray(response.data) ? response.data : response.data.results || [];
     } catch (error) {
       console.error('Lighting Rules API - getByBudgetTier error:', error);
       const errorMessage = error.response?.data?.detail || 
@@ -189,10 +189,20 @@ const lightingRulesApi = {
 
 const enhancedLightingApi = {
   // Lighting Configurations
+  getLightingConfiguration: async (projectId) => {
+    try {
+      const response = await api.get(`api/pricing/lighting-configurations/${projectId}/`);
+      return response.data;
+    } catch (error) {
+      console.error('Enhanced Lighting API - getLightingConfiguration error:', error);
+      throw new Error(error.response?.data?.detail || 'Failed to fetch lighting configuration');
+    }
+  },
+
   getLightingConfigurations: async (params = {}) => {
     try {
       const response = await api.get('api/pricing/lighting-configurations/', { params });
-      return response.data;
+      return Array.isArray(response.data) ? response.data : response.data.results || [];
     } catch (error) {
       console.error('Enhanced Lighting API - getLightingConfigurations error:', error);
       throw new Error(error.response?.data?.detail || 'Failed to fetch lighting configurations');
@@ -210,10 +220,12 @@ const enhancedLightingApi = {
   },
 
   // Lighting Items
-  getLightingItems: async (params = {}) => {
+  getLightingItems: async (projectId) => {
     try {
-      const response = await api.get('api/pricing/lighting-items/', { params });
-      return response.data;
+      const response = await api.get('api/pricing/lighting-items/', { 
+        params: { project: projectId } 
+      });
+      return Array.isArray(response.data) ? response.data : response.data.results || [];
     } catch (error) {
       console.error('Enhanced Lighting API - getLightingItems error:', error);
       throw new Error(error.response?.data?.detail || 'Failed to fetch lighting items');
@@ -226,6 +238,21 @@ const enhancedLightingApi = {
       return response.data;
     } catch (error) {
       console.error('Enhanced Lighting API - createLightingItem error:', error);
+      
+      if (error.response?.data) {
+        const errors = error.response.data;
+        
+        if (typeof errors === 'object' && !errors.detail && !errors.message) {
+          const fieldErrors = Object.entries(errors)
+            .map(([field, messages]) => {
+              const messageArray = Array.isArray(messages) ? messages : [messages];
+              return `${field}: ${messageArray.join(', ')}`;
+            })
+            .join('; ');
+          throw new Error(fieldErrors);
+        }
+      }
+      
       throw new Error(error.response?.data?.detail || 'Failed to create lighting item');
     }
   },
@@ -236,6 +263,21 @@ const enhancedLightingApi = {
       return response.data;
     } catch (error) {
       console.error('Enhanced Lighting API - updateLightingItem error:', error);
+      
+      if (error.response?.data) {
+        const errors = error.response.data;
+        
+        if (typeof errors === 'object' && !errors.detail && !errors.message) {
+          const fieldErrors = Object.entries(errors)
+            .map(([field, messages]) => {
+              const messageArray = Array.isArray(messages) ? messages : [messages];
+              return `${field}: ${messageArray.join(', ')}`;
+            })
+            .join('; ');
+          throw new Error(fieldErrors);
+        }
+      }
+      
       throw new Error(error.response?.data?.detail || 'Failed to update lighting item');
     }
   },
@@ -246,16 +288,32 @@ const enhancedLightingApi = {
       return { success: true };
     } catch (error) {
       console.error('Enhanced Lighting API - deleteLightingItem error:', error);
+      
+      if (error.response?.status === 404) {
+        throw new Error('Lighting item not found');
+      }
+      
+      if (error.response?.status === 403) {
+        throw new Error('You do not have permission to delete this lighting item');
+      }
+      
       throw new Error(error.response?.data?.detail || 'Failed to delete lighting item');
     }
   },
 
-  toggleLightingItem: async (id) => {
+  toggleLightingItem: async (id, isActive) => {
     try {
-      const response = await api.post(`api/pricing/lighting-items/${id}/toggle_active/`);
+      const response = await api.patch(`api/pricing/lighting-items/${id}/`, {
+        is_active: isActive
+      });
       return response.data;
     } catch (error) {
       console.error('Enhanced Lighting API - toggleLightingItem error:', error);
+      
+      if (error.response?.status === 404) {
+        throw new Error('Lighting item not found');
+      }
+      
       throw new Error(error.response?.data?.detail || 'Failed to toggle lighting item');
     }
   },
@@ -270,7 +328,7 @@ const enhancedLightingApi = {
     }
   },
 
-  // Project Lighting Management
+  // Project Lighting Management - FIXED to use correct project endpoints
   getProjectLighting: async (projectId) => {
     try {
       const response = await api.get(`api/pricing/projects/${projectId}/lighting/`);
@@ -301,9 +359,21 @@ const enhancedLightingApi = {
     }
   },
 
+  // FIXED: Auto-create lighting items - need to get/create configuration first, then call the action
   autoCreateLightingItems: async (projectId) => {
     try {
-      const response = await api.post(`api/pricing/lighting-configurations/${projectId}/auto_create_items/`);
+      // Step 1: Get or create the lighting configuration for this project
+      let config;
+      try {
+        config = await enhancedLightingApi.getLightingConfiguration(projectId);
+      } catch (error) {
+        // If configuration doesn't exist, create it via the project lighting endpoint
+        const projectLighting = await enhancedLightingApi.createProjectLighting(projectId);
+        config = projectLighting.configuration || projectLighting;
+      }
+      
+      // Step 2: Call the auto_create_items action on the configuration
+      const response = await api.post(`api/pricing/lighting-configurations/${config.id}/auto_create_items/`);
       return response.data;
     } catch (error) {
       console.error('Enhanced Lighting API - autoCreateLightingItems error:', error);
@@ -314,8 +384,10 @@ const enhancedLightingApi = {
   // Get applicable rules for a project
   getApplicableRules: async (projectId) => {
     try {
-      const response = await api.get(`api/pricing/lighting-rules/applicable_rules/?project=${projectId}`);
-      return response.data;
+      const response = await api.get(`api/pricing/lighting-rules/applicable_rules/`, {
+        params: { project: projectId }
+      });
+      return Array.isArray(response.data) ? response.data : response.data.results || [];
     } catch (error) {
       console.error('Enhanced Lighting API - getApplicableRules error:', error);
       throw new Error(error.response?.data?.detail || 'Failed to fetch applicable rules');
@@ -334,6 +406,5 @@ const enhancedLightingApi = {
   }
 };
 
-// Export both APIs
-export default { ...lightingRulesApi, ...enhancedLightingApi };
+// Export the APIs separately to avoid namespace collisions
 export { lightingRulesApi, enhancedLightingApi };

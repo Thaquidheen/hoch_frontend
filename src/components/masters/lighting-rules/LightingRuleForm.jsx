@@ -23,17 +23,20 @@ const LightingRuleForm = ({
   lightingRule = null,
   materials = [],
   customers = [],
+  cabinetTypes = [],
   isOpen = false, 
   onSave, 
   onCancel,
   loading = false
 }) => {
   const [formData, setFormData] = useState({
-    name: '',
-    cabinet_material: '',
-    customer: '',
-    is_global: true,
-    budget_tier: 'LUXURY',
+  name: '',
+  cabinet_material: '',
+  cabinet_type: '',       // Added field
+  calc_method: 'PER_WIDTH', // Added field with default value
+  customer: '',
+  is_global: true,
+  budget_tier: 'LUXURY',
     
     // Pricing
     led_strip_rate_per_mm: '2.0',
@@ -115,8 +118,16 @@ const LightingRuleForm = ({
     }
 
     if (!formData.cabinet_material) {
-      newErrors.cabinet_material = 'Cabinet material is required';
-    }
+    newErrors.cabinet_material = 'Cabinet material is required';
+  }
+  
+  if (!formData.cabinet_type) {
+    newErrors.cabinet_type = 'Cabinet type is required';
+  }
+  
+  if (!formData.calc_method) {
+    newErrors.calc_method = 'Calculation method is required';
+  }
 
     if (!formData.is_global && !formData.customer) {
       newErrors.customer = 'Customer is required for customer-specific rules';
@@ -191,6 +202,9 @@ const LightingRuleForm = ({
     try {
       const submitData = {
         ...formData,
+        cabinet_material: formData.cabinet_material,  // Make sure this is the ID
+      cabinet_type: formData.cabinet_type,          // Make sure this is the ID
+      calc_method: formData.calc_method,            // Required field
         led_strip_rate_per_mm: parseFloat(formData.led_strip_rate_per_mm),
         spot_light_rate_per_cabinet: parseFloat(formData.spot_light_rate_per_cabinet),
         customer: formData.is_global ? null : formData.customer
@@ -352,18 +366,18 @@ const LightingRuleForm = ({
 
                 <div className="form-group">
                   <label className="form-label">Cabinet Material *</label>
-                  <select
-                    className={`form-select ${errors.cabinet_material ? 'error' : ''}`}
-                    value={formData.cabinet_material}
-                    onChange={(e) => handleInputChange('cabinet_material', e.target.value)}
-                  >
-                    <option value="">Select cabinet material</option>
-                    {materials.map(material => (
-                      <option key={material.id} value={material.name}>
-                        {material.name} ({material.role})
-                      </option>
-                    ))}
-                  </select>
+                 <select
+  className={`form-select ${errors.cabinet_material ? 'error' : ''}`}
+  value={formData.cabinet_material}
+  onChange={(e) => handleInputChange('cabinet_material', e.target.value)}
+>
+  <option value="">Select cabinet material</option>
+  {materials.map(material => (
+    <option key={material.id} value={material.id}>  // CORRECT - using ID as value
+      {material.name} ({material.role})
+    </option>
+  ))}
+</select>
                   {errors.cabinet_material && (
                     <div className="form-error">
                       <AlertCircle className="error-icon" />
@@ -372,7 +386,48 @@ const LightingRuleForm = ({
                   )}
                 </div>
               </div>
+<div className="form-group">
+  <label className="form-label">Cabinet Type *</label>
+  <select
+    className={`form-select ${errors.cabinet_type ? 'error' : ''}`}
+    value={formData.cabinet_type}
+    onChange={(e) => handleInputChange('cabinet_type', e.target.value)}
+  >
+    <option value="">Select cabinet type</option>
+    {cabinetTypes.map(type => (
+      <option key={type.id} value={type.id}>
+        {type.name}
+      </option>
+    ))}
+  </select>
+  {errors.cabinet_type && (
+    <div className="form-error">
+      <AlertCircle className="error-icon" />
+      {errors.cabinet_type}
+    </div>
+  )}
+</div>
 
+<div className="form-group">
+  <label className="form-label">Calculation Method *</label>
+  <select
+    className={`form-select ${errors.calc_method ? 'error' : ''}`}
+    value={formData.calc_method}
+    onChange={(e) => handleInputChange('calc_method', e.target.value)}
+  >
+    <option value="">Select calculation method</option>
+    <option value="PER_WIDTH">Per Cabinet Width (mm)</option>
+    <option value="PER_LM">Per Linear Meter</option>
+    <option value="FLAT_RATE">Flat Rate per Cabinet</option>
+    <option value="WALL_ONLY">Wall Cabinets Only</option>
+  </select>
+  {errors.calc_method && (
+    <div className="form-error">
+      <AlertCircle className="error-icon" />
+      {errors.calc_method}
+    </div>
+  )}
+</div>
               {/* Rule Scope */}
               <div className="form-group">
                 <label className="form-label">Rule Scope *</label>

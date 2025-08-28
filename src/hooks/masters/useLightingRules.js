@@ -1,39 +1,55 @@
-// src/hooks/masters/useLightingRules.js
-
 import { useState, useEffect, useCallback } from 'react';
-import lightingRulesApi from '../../service/masters/lightingRulesApi';
+import { lightingRulesApi, enhancedLightingApi } from '../../service/masters/lightingRulesApi';
 
 const useLightingRules = () => {
   const [lightingRules, setLightingRules] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Fetch all lighting rules
-  const fetchLightingRules = useCallback(async (params = {}) => {
+  // Load lighting rules
+  useEffect(() => {
+    const loadLightingRules = async () => {
+      setLoading(true);
+      setError(null);
+      
+      try {
+        const rules = await lightingRulesApi.getAll();
+        setLightingRules(rules);
+      } catch (err) {
+        console.error('Failed to load lighting rules:', err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadLightingRules();
+  }, []);
+
+  // Get a single lighting rule
+  const getLightingRule = useCallback(async (id) => {
     setLoading(true);
     setError(null);
     
     try {
-      const response = await lightingRulesApi.getAll(params);
-      // Handle both paginated and direct array responses
-      const rules = Array.isArray(response) ? response : response.results || [];
-      setLightingRules(rules);
+      const rule = await lightingRulesApi.getById(id);
+      return { success: true, data: rule };
     } catch (err) {
       setError(err.message);
-      console.error('Error fetching lighting rules:', err);
+      return { success: false, error: err.message };
     } finally {
       setLoading(false);
     }
   }, []);
 
-  // Create new lighting rule
+  // Create a new lighting rule
   const createLightingRule = useCallback(async (ruleData) => {
     setLoading(true);
     setError(null);
     
     try {
       const newRule = await lightingRulesApi.create(ruleData);
-      setLightingRules(prev => [newRule, ...prev]);
+      setLightingRules(prev => [...prev, newRule]);
       return { success: true, data: newRule };
     } catch (err) {
       setError(err.message);
@@ -43,7 +59,7 @@ const useLightingRules = () => {
     }
   }, []);
 
-  // Update lighting rule
+  // Update an existing lighting rule
   const updateLightingRule = useCallback(async (id, ruleData) => {
     setLoading(true);
     setError(null);
@@ -62,7 +78,7 @@ const useLightingRules = () => {
     }
   }, []);
 
-  // Delete lighting rule
+  // Delete a lighting rule
   const deleteLightingRule = useCallback(async (id) => {
     setLoading(true);
     setError(null);
@@ -79,7 +95,7 @@ const useLightingRules = () => {
     }
   }, []);
 
-  // Toggle rule status
+  // Toggle rule status (active/inactive)
   const toggleRuleStatus = useCallback(async (id, isActive) => {
     setLoading(true);
     setError(null);
@@ -90,72 +106,6 @@ const useLightingRules = () => {
         prev.map(rule => rule.id === id ? updatedRule : rule)
       );
       return { success: true, data: updatedRule };
-    } catch (err) {
-      setError(err.message);
-      return { success: false, error: err.message };
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  // Get rules by material
-  const getRulesByMaterial = useCallback(async (materialId) => {
-    setLoading(true);
-    setError(null);
-    
-    try {
-      const response = await lightingRulesApi.getByMaterial(materialId);
-      const rules = Array.isArray(response) ? response : response.results || [];
-      return { success: true, data: rules };
-    } catch (err) {
-      setError(err.message);
-      return { success: false, error: err.message };
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  // Get rules by budget tier
-  const getRulesByBudgetTier = useCallback(async (budgetTier) => {
-    setLoading(true);
-    setError(null);
-    
-    try {
-      const response = await lightingRulesApi.getByBudgetTier(budgetTier);
-      const rules = Array.isArray(response) ? response : response.results || [];
-      return { success: true, data: rules };
-    } catch (err) {
-      setError(err.message);
-      return { success: false, error: err.message };
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  // Get current active rates
-  const getCurrentRates = useCallback(async (params = {}) => {
-    setLoading(true);
-    setError(null);
-    
-    try {
-      const rates = await lightingRulesApi.getCurrentRates(params);
-      return { success: true, data: rates };
-    } catch (err) {
-      setError(err.message);
-      return { success: false, error: err.message };
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  // Test calculation with sample data
-  const testCalculation = useCallback(async (ruleId, testData) => {
-    setLoading(true);
-    setError(null);
-    
-    try {
-      const result = await lightingRulesApi.testCalculation(ruleId, testData);
-      return { success: true, data: result };
     } catch (err) {
       setError(err.message);
       return { success: false, error: err.message };
@@ -192,7 +142,7 @@ const useLightingRules = () => {
         headers.join(','),
         ...lightingRules.map(rule => [
           `"${rule.name || ''}"`,
-          `"${rule.cabinet_material || ''}"`,
+          `"${rule.cabinet_material_detail?.name || ''}"`,
           `"${rule.customer_detail?.name || (rule.is_global ? 'Global' : '')}"`,
           rule.is_global ? 'Yes' : 'No',
           rule.budget_tier || '',
@@ -228,74 +178,196 @@ const useLightingRules = () => {
     }
   }, [lightingRules]);
 
-  // Import rules (placeholder for now)
+  // Import rules (placeholder function)
   const importRules = useCallback(async () => {
     // This would handle file upload and import
-    // For now, just show a message
     alert('Import functionality coming soon!');
     return { success: true };
   }, []);
 
   // Get applicable rules for a project
-  const getApplicableRules = useCallback((project, material = null) => {
-    if (!project || !lightingRules.length) return [];
+  const getApplicableRules = useCallback(async (projectId) => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const rules = await enhancedLightingApi.getApplicableRules(projectId);
+      return { success: true, data: rules };
+    } catch (err) {
+      setError(err.message);
+      return { success: false, error: err.message };
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-    return lightingRules.filter(rule => {
-      // Material match
-      const materialMatch = !material || rule.cabinet_material === material;
-      
-      // Budget tier match
-      const tierMatch = rule.budget_tier === project.budget_tier;
-      
-      // Customer match (global rules or customer-specific)
-      const customerMatch = rule.is_global || rule.customer === project.customer;
-      
-      // Active rule
-      const isActive = rule.is_active;
-      
-      // Date range check
-      const today = new Date();
-      const effectiveFrom = new Date(rule.effective_from);
-      const effectiveTo = rule.effective_to ? new Date(rule.effective_to) : null;
-      
-      const dateValid = today >= effectiveFrom && (!effectiveTo || today <= effectiveTo);
-      
-      return materialMatch && tierMatch && customerMatch && isActive && dateValid;
-    }).sort((a, b) => {
-      // Sort by specificity: customer-specific first, then by effective date
-      if (!a.is_global && b.is_global) return -1;
-      if (a.is_global && !b.is_global) return 1;
-      return new Date(b.effective_from) - new Date(a.effective_from);
-    });
-  }, [lightingRules]);
+  // Test calculation with sample data
+  const testCalculation = useCallback(async (ruleId, testData) => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const result = await lightingRulesApi.testCalculation(ruleId, testData);
+      return { success: true, data: result };
+    } catch (err) {
+      setError(err.message);
+      return { success: false, error: err.message };
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-  // Initial fetch on mount
-  useEffect(() => {
-    fetchLightingRules();
-  }, [fetchLightingRules]);
+  // Project-specific lighting functionality
+  const getProjectLighting = useCallback(async (projectId) => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const result = await enhancedLightingApi.getProjectLighting(projectId);
+      return { success: true, data: result };
+    } catch (err) {
+      setError(err.message);
+      return { success: false, error: err.message };
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+  
+  const getLightingItems = useCallback(async (projectId) => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const items = await enhancedLightingApi.getLightingItems(projectId);
+      return { success: true, data: items };
+    } catch (err) {
+      setError(err.message);
+      return { success: false, error: err.message };
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const createLightingItem = useCallback(async (itemData) => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const newItem = await enhancedLightingApi.createLightingItem(itemData);
+      return { success: true, data: newItem };
+    } catch (err) {
+      setError(err.message);
+      return { success: false, error: err.message };
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const updateLightingItem = useCallback(async (id, itemData) => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const updatedItem = await enhancedLightingApi.updateLightingItem(id, itemData);
+      return { success: true, data: updatedItem };
+    } catch (err) {
+      setError(err.message);
+      return { success: false, error: err.message };
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const deleteLightingItem = useCallback(async (id) => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      await enhancedLightingApi.deleteLightingItem(id);
+      return { success: true };
+    } catch (err) {
+      setError(err.message);
+      return { success: false, error: err.message };
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const toggleLightingItem = useCallback(async (id, isActive) => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const updatedItem = await enhancedLightingApi.toggleLightingItem(id, isActive);
+      return { success: true, data: updatedItem };
+    } catch (err) {
+      setError(err.message);
+      return { success: false, error: err.message };
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const recalculateLightingTotals = useCallback(async (projectId) => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const result = await enhancedLightingApi.recalculateLightingTotals(projectId);
+      return { success: true, data: result };
+    } catch (err) {
+      setError(err.message);
+      return { success: false, error: err.message };
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const autoCreateLightingItems = useCallback(async (projectId) => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const result = await enhancedLightingApi.autoCreateLightingItems(projectId);
+      return { success: true, data: result };
+    } catch (err) {
+      setError(err.message);
+      return { success: false, error: err.message };
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   return {
-    // Data
+    // State
     lightingRules,
     loading,
     error,
     
-    // Actions
-    fetchLightingRules,
+    // Basic CRUD operations
+    getLightingRule,
     createLightingRule,
-    updateLightingRule, 
+    updateLightingRule,
     deleteLightingRule,
     toggleRuleStatus,
-    getRulesByMaterial,
-    getRulesByBudgetTier,
-    getCurrentRates,
-    testCalculation,
+    
+    // Import/Export
     exportRules,
     importRules,
-    getApplicableRules,
     
-    // Clear error
-    clearError: () => setError(null)
+    // Advanced operations
+    getApplicableRules,
+    testCalculation,
+    
+    // Project-specific lighting functionality
+    getProjectLighting,
+    getLightingItems,
+    createLightingItem,
+    updateLightingItem,
+    deleteLightingItem,
+    toggleLightingItem,
+    recalculateLightingTotals,
+    autoCreateLightingItems
   };
 };
 
