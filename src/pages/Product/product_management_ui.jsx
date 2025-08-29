@@ -4,40 +4,21 @@ import {
   TrendingUp, AlertTriangle, CheckCircle, XCircle,
   BarChart3, Grid, List, RefreshCw, Download,
   ShoppingCart, Tag, Layers, Palette, Save, X,
-  Ruler, DollarSign, Image, Upload
+  Ruler, DollarSign, Image, Upload,Calculator,
 } from 'lucide-react';
 import './ProductManagement.css';
 import axiosInstance from '../../service/api';
-import { ProductVariantService } from '../../service/product_api_service';
+import  ProductVariantService  from '../../service/product_api_service';
 
 // API Services
-const ProductAPI = {
+export const ProductAPI = {
+  // Product CRUD operations
   getProducts: async (params = {}) => {
     try {
       const response = await axiosInstance.get('/api/catalog/products/', { params });
       return response.data;
     } catch (error) {
       console.error('Error fetching products:', error);
-      throw error;
-    }
-  },
-
-  uploadProductImages: async (variantId, files) => {
-    try {
-      const formData = new FormData();
-      files.forEach((file, index) => {
-        formData.append(`images`, file);
-        formData.append(`alt_text_${index}`, file.name);
-      });
-      
-      const response = await axiosInstance.post(`/api/catalog/product-variants/${variantId}/upload-images/`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-      return response.data;
-    } catch (error) {
-      console.error('Error uploading images:', error);
       throw error;
     }
   },
@@ -51,37 +32,7 @@ const ProductAPI = {
       throw error;
     }
   },
-  
-  getCategories: async () => {
-    try {
-      const response = await axiosInstance.get('/api/catalog/categories/');
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching categories:', error);
-      throw error;
-    }
-  },
-  
-  getBrands: async () => {
-    try {
-      const response = await axiosInstance.get('/api/catalog/brands/');
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching brands:', error);
-      throw error;
-    }
-  },
-  
-  getDashboard: async () => {
-    try {
-      const response = await axiosInstance.get('/api/catalog/dashboard/');
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching dashboard:', error);
-      throw error;
-    }
-  },
-  
+
   createProduct: async (productData) => {
     try {
       const response = await axiosInstance.post('/api/catalog/products/', productData);
@@ -91,7 +42,7 @@ const ProductAPI = {
       throw error;
     }
   },
-  
+
   updateProduct: async (id, productData) => {
     try {
       const response = await axiosInstance.put(`/api/catalog/products/${id}/`, productData);
@@ -101,7 +52,7 @@ const ProductAPI = {
       throw error;
     }
   },
-  
+
   deleteProduct: async (id) => {
     try {
       const response = await axiosInstance.delete(`/api/catalog/products/${id}/`);
@@ -111,28 +62,18 @@ const ProductAPI = {
       throw error;
     }
   },
-  
-  getColors: async () => {
+
+  searchProducts: async (searchParams) => {
     try {
-      const response = await axiosInstance.get('/api/catalog/colors/');
+      const response = await axiosInstance.get('/api/catalog/products/search/', { params: searchParams });
       return response.data;
     } catch (error) {
-      console.error('Error fetching colors:', error);
-      throw error;
-    }
-  },
-  
-  getSizes: async (params = {}) => {
-    try {
-      const response = await axiosInstance.get('/api/catalog/product-sizes/', { params });
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching sizes:', error);
+      console.error('Error searching products:', error);
       throw error;
     }
   },
 
-  // Variant APIs
+  // Product Variant operations with simplified structure
   getVariants: async (params = {}) => {
     try {
       const response = await axiosInstance.get('/api/catalog/product-variants/', { params });
@@ -145,7 +86,33 @@ const ProductAPI = {
 
   createVariant: async (variantData) => {
     try {
-      const response = await axiosInstance.post('/api/catalog/product-variants/', variantData);
+      // Structure for your simplified backend
+      const payload = {
+        product: variantData.product,
+        
+        // Simplified size inputs
+        size_width: parseFloat(variantData.size_width) || null,
+        size_height: parseFloat(variantData.size_height) || null,
+        size_depth: parseFloat(variantData.size_depth) || null,
+        
+        // Simplified color input
+        color_name: variantData.color_name || '',
+        
+        // Material code
+        material_code: variantData.material_code,
+        
+        // Pricing (backend will auto-calculate tax_amount, discount_amount, company_price)
+        mrp: parseFloat(variantData.mrp),
+        tax_rate: parseFloat(variantData.tax_rate || 18),
+        discount_rate: parseFloat(variantData.discount_rate || 0),
+        
+        // Other fields
+        stock_quantity: parseInt(variantData.stock_quantity || 0),
+        sku_code: variantData.sku_code || '',
+        is_active: variantData.is_active !== false
+      };
+      
+      const response = await axiosInstance.post('/api/catalog/product-variants/', payload);
       return response.data;
     } catch (error) {
       console.error('Error creating variant:', error);
@@ -155,7 +122,22 @@ const ProductAPI = {
 
   updateVariant: async (id, variantData) => {
     try {
-      const response = await axiosInstance.put(`/api/catalog/product-variants/${id}/`, variantData);
+      const payload = {
+        // Only include fields that can be updated
+        size_width: parseFloat(variantData.size_width) || null,
+        size_height: parseFloat(variantData.size_height) || null,
+        size_depth: parseFloat(variantData.size_depth) || null,
+        color_name: variantData.color_name || '',
+        material_code: variantData.material_code,
+        mrp: parseFloat(variantData.mrp),
+        tax_rate: parseFloat(variantData.tax_rate || 18),
+        discount_rate: parseFloat(variantData.discount_rate || 0),
+        stock_quantity: parseInt(variantData.stock_quantity || 0),
+        sku_code: variantData.sku_code || '',
+        is_active: variantData.is_active !== false
+      };
+
+      const response = await axiosInstance.put(`/api/catalog/product-variants/${id}/`, payload);
       return response.data;
     } catch (error) {
       console.error('Error updating variant:', error);
@@ -173,202 +155,256 @@ const ProductAPI = {
     }
   },
 
-  searchProducts: async (searchParams) => {
+  // NEW: Price calculation endpoints
+  calculatePrice: async (priceData) => {
     try {
-      const response = await axiosInstance.get('/api/catalog/products/search/', { params: searchParams });
+      const response = await axiosInstance.post('/api/catalog/calculate-price/', {
+        mrp: parseFloat(priceData.mrp),
+        tax_rate: parseFloat(priceData.tax_rate || 18),
+        discount_rate: parseFloat(priceData.discount_rate || 0)
+      });
       return response.data;
     } catch (error) {
-      console.error('Error searching products:', error);
+      console.error('Error calculating price:', error);
+      throw error;
+    }
+  },
+
+  // NEW: Update variant pricing with auto-recalculation
+  updateVariantPricing: async (id, pricingData) => {
+    try {
+      const response = await axiosInstance.post(`/api/catalog/product-variants/${id}/update-pricing/`, {
+        mrp: parseFloat(pricingData.mrp),
+        tax_rate: parseFloat(pricingData.tax_rate),
+        discount_rate: parseFloat(pricingData.discount_rate)
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error updating variant pricing:', error);
+      throw error;
+    }
+  },
+
+  // NEW: Get detailed price breakdown for a variant
+  getVariantPriceBreakdown: async (id) => {
+    try {
+      const response = await axiosInstance.get(`/api/catalog/product-variants/${id}/price-breakdown/`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching price breakdown:', error);
+      throw error;
+    }
+  },
+
+  // NEW: Search variants by color
+  getVariantsByColor: async (color) => {
+    try {
+      const response = await axiosInstance.get('/api/catalog/product-variants/by-color/', {
+        params: { color }
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching variants by color:', error);
+      throw error;
+    }
+  },
+
+  // NEW: Search variants by size range
+  getVariantsBySizeRange: async (sizeParams) => {
+    try {
+      const response = await axiosInstance.get('/api/catalog/product-variants/by-size-range/', {
+        params: sizeParams
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching variants by size range:', error);
+      throw error;
+    }
+  },
+
+  // Stock management
+  updateVariantStock: async (id, stockQuantity) => {
+    try {
+      const response = await axiosInstance.post(`/api/catalog/product-variants/${id}/update-stock/`, {
+        stock_quantity: parseInt(stockQuantity)
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error updating stock:', error);
+      throw error;
+    }
+  },
+
+  // Image upload for variants
+  uploadVariantImages: async (variantId, files) => {
+    try {
+      const formData = new FormData();
+      files.forEach((file, index) => {
+        formData.append(`images`, file);
+        formData.append(`alt_text_${index}`, file.name);
+      });
+      
+      const response = await axiosInstance.post(
+        `/api/catalog/product-variants/${variantId}/upload-images/`, 
+        formData, 
+        {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        }
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error uploading images:', error);
+      throw error;
+    }
+  },
+
+  // Reference data
+  getCategories: async () => {
+    try {
+      const response = await axiosInstance.get('/api/catalog/categories/');
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+      throw error;
+    }
+  },
+
+  getBrands: async () => {
+    try {
+      const response = await axiosInstance.get('/api/catalog/brands/');
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching brands:', error);
+      throw error;
+    }
+  },
+
+  // NEW: Get catalog utilities (colors, size ranges, etc.)
+  getCatalogUtilities: async () => {
+    try {
+      const response = await axiosInstance.get('/api/catalog/utilities/');
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching catalog utilities:', error);
+      throw error;
+    }
+  },
+
+  // Dashboard and analytics
+  getDashboard: async () => {
+    try {
+      const response = await axiosInstance.get('/api/catalog/dashboard/');
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching dashboard:', error);
+      throw error;
+    }
+  },
+
+  getSearchSuggestions: async (query) => {
+    try {
+      const response = await axiosInstance.get('/api/catalog/search-suggestions/', {
+        params: { q: query }
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching search suggestions:', error);
+      throw error;
+    }
+  },
+
+  getPriceAnalysis: async (params = {}) => {
+    try {
+      const response = await axiosInstance.get('/api/catalog/price-analysis/', { params });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching price analysis:', error);
+      throw error;
+    }
+  },
+
+  getInventoryReport: async () => {
+    try {
+      const response = await axiosInstance.get('/api/catalog/inventory-report/');
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching inventory report:', error);
       throw error;
     }
   }
 };
 
-// Image Upload Component
-const ImageUploadSection = ({ variantIndex, variant, onImagesChange, loading }) => {
-  const [dragActive, setDragActive] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState({});
-  const fileInputRef = useRef(null);
+// Utility functions for price calculations
+export const PriceUtils = {
+  calculateTax: (mrp, taxRate = 18) => {
+    return (parseFloat(mrp) * parseFloat(taxRate)) / 100;
+  },
 
-  // Handle file selection
-  const handleFiles = (files) => {
-    const fileArray = Array.from(files);
-    const validFiles = fileArray.filter(file => {
-      const isImage = file.type.startsWith('image/');
-      const isValidSize = file.size <= 5 * 1024 * 1024; // 5MB limit
-      return isImage && isValidSize;
-    });
+  calculateDiscount: (mrp, discountRate = 0) => {
+    return (parseFloat(mrp) * parseFloat(discountRate)) / 100;
+  },
 
-    if (validFiles.length !== fileArray.length) {
-      alert('Some files were skipped. Only image files under 5MB are allowed.');
-    }
+  calculateCompanyPrice: (mrp, taxRate = 18, discountRate = 0) => {
+    const tax = PriceUtils.calculateTax(mrp, taxRate);
+    const discount = PriceUtils.calculateDiscount(mrp, discountRate);
+    return parseFloat(mrp) + tax - discount;
+  },
 
-    // Add new images to existing ones
-    const existingImages = variant.images || [];
-    const newImages = validFiles.map(file => ({
-      id: `temp_${Date.now()}_${Math.random()}`,
-      file: file,
-      preview: URL.createObjectURL(file),
-      alt_text: file.name,
-      is_primary: existingImages.length === 0, // First image is primary
-      uploading: false
-    }));
+  formatCurrency: (amount) => {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      minimumFractionDigits: 2,
+    }).format(amount);
+  },
 
-    onImagesChange(variantIndex, 'images', [...existingImages, ...newImages]);
-  };
-
-  // Handle drag events
-  const handleDrag = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (e.type === "dragenter" || e.type === "dragover") {
-      setDragActive(true);
-    } else if (e.type === "dragleave") {
-      setDragActive(false);
-    }
-  };
-
-  const handleDrop = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive(false);
-    
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleFiles(e.dataTransfer.files);
-    }
-  };
-
-  const handleFileInput = (e) => {
-    if (e.target.files && e.target.files) {
-      handleFiles(e.target.files);
-    }
-  };
-
-  const removeImage = (imageIndex) => {
-    const updatedImages = (variant.images || []).filter((_, index) => index !== imageIndex);
-    
-    // If we removed the primary image, make the first remaining image primary
-    if (updatedImages.length > 0 && !updatedImages.some(img => img.is_primary)) {
-      updatedImages[0].is_primary = true;
-    }
-    
-    onImagesChange(variantIndex, 'images', updatedImages);
-  };
-
-  const setPrimaryImage = (imageIndex) => {
-    const updatedImages = (variant.images || []).map((img, index) => ({
-      ...img,
-      is_primary: index === imageIndex
-    }));
-    onImagesChange(variantIndex, 'images', updatedImages);
-  };
-
-  const updateAltText = (imageIndex, altText) => {
-    const updatedImages = (variant.images || []).map((img, index) => 
-      index === imageIndex ? { ...img, alt_text: altText } : img
-    );
-    onImagesChange(variantIndex, 'images', updatedImages);
-  };
-
-  const images = variant.images || [];
-
-  return (
-    <div className="pm-image-upload-section">
-      {/* Upload Area */}
-      <div
-        className={`pm-image-dropzone ${dragActive ? 'active' : ''} ${loading ? 'disabled' : ''}`}
-        onDragEnter={handleDrag}
-        onDragLeave={handleDrag}
-        onDragOver={handleDrag}
-        onDrop={handleDrop}
-        onClick={() => !loading && fileInputRef.current?.click()}
-      >
-        <input
-          ref={fileInputRef}
-          type="file"
-          multiple
-          accept="image/*"
-          onChange={handleFileInput}
-          className="pm-hidden"
-          disabled={loading}
-        />
-        
-        <div className="pm-upload-content">
-          <Upload className="pm-upload-icon" />
-          <div className="pm-upload-text">
-            <p className="pm-upload-primary">Click to upload or drag and drop</p>
-            <p className="pm-upload-secondary">PNG, JPG, GIF up to 5MB each</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Image Preview Grid */}
-      {images.length > 0 && (
-        <div className="pm-image-grid">
-          {images.map((image, imageIndex) => (
-            <div key={image.id || imageIndex} className="pm-image-card">
-              <div className="pm-image-wrapper">
-                <img
-                  src={image.preview || image.image_url}
-                  alt={image.alt_text || `Product image ${imageIndex + 1}`}
-                  className="pm-image-preview"
-                />
-                
-                {/* Primary Badge */}
-                {image.is_primary && (
-                  <div className="pm-badge-primary">Primary</div>
-                )}
-                
-                {/* Upload Progress */}
-                {image.uploading && (
-                  <div className="pm-overlay">
-                    <div className="pm-spinner"></div>
-                  </div>
-                )}
-                
-                {/* Action Buttons */}
-                <div className="pm-image-actions">
-                  <button
-                    type="button"
-                    onClick={() => setPrimaryImage(imageIndex)}
-                    className={`pm-btn-icon ${image.is_primary ? 'active' : ''}`}
-                    disabled={loading || image.is_primary}
-                    title="Set as primary image"
-                  >
-                    <CheckCircle className="pm-icon-sm" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => removeImage(imageIndex)}
-                    className="pm-btn-icon pm-btn-danger"
-                    disabled={loading}
-                    title="Remove image"
-                  >
-                    <Trash2 className="pm-icon-sm" />
-                  </button>
-                </div>
-              </div>
-              
-              {/* Alt Text Input */}
-              <div className="pm-image-meta">
-                <input
-                  type="text"
-                  value={image.alt_text || ''}
-                  onChange={(e) => updateAltText(imageIndex, e.target.value)}
-                  placeholder="Alt text for accessibility"
-                  className="pm-input-alt"
-                  disabled={loading}
-                />
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
+  formatDimensions: (width, height, depth) => {
+    const parts = [];
+    if (width) parts.push(`W:${width}`);
+    if (height) parts.push(`H:${height}`);
+    if (depth) parts.push(`D:${depth}`);
+    return parts.length ? parts.join(' × ') + 'mm' : 'Custom';
+  }
 };
 
+// Hook for real-time price calculation
+export const usePriceCalculation = (mrp, taxRate = 18, discountRate = 0) => {
+  const [calculations, setCalculations] = React.useState(null);
+  const [loading, setLoading] = React.useState(false);
+
+  React.useEffect(() => {
+    if (mrp && mrp > 0) {
+      setLoading(true);
+      
+      // Calculate immediately for instant feedback
+      const taxAmount = PriceUtils.calculateTax(mrp, taxRate);
+      const discountAmount = PriceUtils.calculateDiscount(mrp, discountRate);
+      const companyPrice = PriceUtils.calculateCompanyPrice(mrp, taxRate, discountRate);
+      
+      setCalculations({
+        mrp: parseFloat(mrp),
+        tax_rate: parseFloat(taxRate),
+        tax_amount: taxAmount,
+        discount_rate: parseFloat(discountRate),
+        discount_amount: discountAmount,
+        company_price: companyPrice
+      });
+      
+      setLoading(false);
+    } else {
+      setCalculations(null);
+    }
+  }, [mrp, taxRate, discountRate]);
+
+  return { calculations, loading };
+};
+
+
+
+
+
 // Product Form Modal Component
+
 const ProductFormModal = ({ isOpen, onClose, product, onSave }) => {
   const [formData, setFormData] = useState({
     name: '',
@@ -379,21 +415,25 @@ const ProductFormModal = ({ isOpen, onClose, product, onSave }) => {
     meta_description: '',
     is_active: true
   });
-  
+
   const [variants, setVariants] = useState([]);
   const [categories, setCategories] = useState([]);
   const [brands, setBrands] = useState([]);
-  const [colors, setColors] = useState([]);
-  const [sizes, setSizes] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [dataLoading, setDataLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [activeTab, setActiveTab] = useState('basic');
+  
+  // Ref for the single file input
+  const fileInputRef = useRef(null);
+  // State to track which variant is currently being assigned an image
+  const [activeImageUploadIndex, setActiveImageUploadIndex] = useState(null);
 
-  // Reset form when modal opens/closes
+
+  // --- Effects ---
+
+  // Effect to initialize or reset the form state when the modal opens or the product changes
   useEffect(() => {
     if (isOpen) {
-      setDataLoading(true);
       loadReferenceData();
       if (product) {
         setFormData({
@@ -405,17 +445,13 @@ const ProductFormModal = ({ isOpen, onClose, product, onSave }) => {
           meta_description: product.meta_description || '',
           is_active: product.is_active !== undefined ? product.is_active : true
         });
-        setVariants(product.variants || []);
+        // Initialize variants with image preview URLs
+        setVariants(product.variants?.map(v => ({...v, imagePreview: v.image_url, imageFile: null})) || []);
       } else {
-        // Reset for new product
+        // Reset for a new product
         setFormData({
-          name: '',
-          category: '',
-          brand: '',
-          description: '',
-          meta_title: '',
-          meta_description: '',
-          is_active: true
+          name: '', category: '', brand: '', description: '',
+          meta_title: '', meta_description: '', is_active: true
         });
         setVariants([]);
       }
@@ -424,73 +460,125 @@ const ProductFormModal = ({ isOpen, onClose, product, onSave }) => {
     }
   }, [isOpen, product]);
 
+  // --- Data Loading ---
+
   const loadReferenceData = async () => {
     try {
-      const [categoriesData, brandsData, colorsData, sizesData] = await Promise.all([
-        ProductAPI.getCategories(),
-        ProductAPI.getBrands(),
-        ProductAPI.getColors(),
-        ProductAPI.getSizes()
+      const [categoriesRes, brandsRes] = await Promise.all([
+        axiosInstance.get('/api/catalog/categories/'),
+        axiosInstance.get('/api/catalog/brands/')
       ]);
-      
-      setCategories(categoriesData.results || categoriesData || []);
-      setBrands(brandsData.results || brandsData || []);
-      setColors(colorsData.results || colorsData || []);
-      setSizes(sizesData.results || sizesData || []);
+      setCategories(categoriesRes.data.results || categoriesRes.data || []);
+      setBrands(brandsRes.data.results || brandsRes.data || []);
     } catch (error) {
       console.error('Error loading reference data:', error);
-      // Set empty arrays to prevent errors
-      setCategories([]);
-      setBrands([]);
-      setColors([]);
-      setSizes([]);
-    } finally {
-      setDataLoading(false);
+      alert('Failed to load categories and brands.');
     }
   };
 
-  const handleInputChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    // Clear error when field is updated
-    if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
-    }
+  // --- Variant Management ---
+
+  const addVariant = () => {
+    const newVariant = {
+      id: `temp_${Date.now()}`,
+      size_width: '', size_height: '', size_depth: '',
+      color_name: '', material_code: '', mrp: '',
+      tax_rate: 18.00, discount_rate: 0.00,
+      stock_quantity: 0, sku_code: '', is_active: true,
+      imageFile: null, // To hold the selected File object
+      imagePreview: null // To hold the data URL for preview
+    };
+    setVariants([...variants, newVariant]);
   };
 
-  // Split validation so Basic and Variants can be validated independently
-  const validateBasic = () => {
+  const updateVariant = (index, field, value) => {
+    setVariants(prev => prev.map((variant, i) => {
+      if (i === index) {
+        const updated = { ...variant, [field]: value };
+        // Auto-calculate price preview
+        if (['mrp', 'tax_rate', 'discount_rate'].includes(field)) {
+          const mrp = updated.mrp;
+          const taxRate = updated.tax_rate;
+          const discountRate = updated.discount_rate;
+          if (mrp && mrp > 0) {
+            const taxAmount = (parseFloat(mrp) * parseFloat(taxRate)) / 100;
+            const discountAmount = (parseFloat(mrp) * parseFloat(discountRate)) / 100;
+            updated._calculated = {
+              tax_amount: taxAmount.toFixed(2),
+              discount_amount: discountAmount.toFixed(2),
+              company_price: (parseFloat(mrp) + taxAmount - discountAmount).toFixed(2)
+            };
+          } else {
+            delete updated._calculated;
+          }
+        }
+        return updated;
+      }
+      return variant;
+    }));
+  };
+
+  const removeVariant = (index) => {
+    setVariants(prev => prev.filter((_, i) => i !== index));
+  };
+
+  // --- Image Handling ---
+
+  const handleImageUploadClick = (index) => {
+    setActiveImageUploadIndex(index); // Set which variant is getting the image
+    fileInputRef.current?.click();
+  };
+
+  const handleFileSelected = (event) => {
+    const file = event.target.files[0];
+    if (file && activeImageUploadIndex !== null) {
+      if (!file.type.startsWith('image/')) {
+        alert('Please select a valid image file.');
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        alert('Image size must be less than 5MB.');
+        return;
+      }
+      
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        // Update the specific variant with the new image file and preview
+        setVariants(prev => prev.map((variant, i) => 
+          i === activeImageUploadIndex 
+            ? { ...variant, imageFile: file, imagePreview: e.target.result } 
+            : variant
+        ));
+      };
+      reader.readAsDataURL(file);
+    }
+    // Reset the file input value so the same file can be re-selected
+    event.target.value = ''; 
+  };
+  
+  const removeVariantImage = (index) => {
+    setVariants(prev => prev.map((variant, i) => 
+      i === index 
+        ? { ...variant, imageFile: null, imagePreview: null } 
+        : variant
+    ));
+  };
+
+  // --- Form Submission ---
+
+  const validateForm = () => {
     const newErrors = {};
     if (!formData.name.trim()) newErrors.name = 'Product name is required';
     if (!formData.category) newErrors.category = 'Category is required';
     if (!formData.brand) newErrors.brand = 'Brand is required';
 
-    setErrors(prev => ({ ...prev, ...newErrors }));
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const validateVariants = () => {
-    const newErrors = {};
     variants.forEach((variant, index) => {
-      if (!variant.material_code?.trim()) {
-        newErrors[`variant_${index}_material_code`] = 'Material code is required';
-      }
-      if (!variant.mrp || Number(variant.mrp) <= 0) {
-        newErrors[`variant_${index}_mrp`] = 'Valid MRP is required';
-      }
-      if (!variant.value || Number(variant.value) <= 0) {
-        newErrors[`variant_${index}_value`] = 'Valid selling price is required';
-      }
+      if (!variant.material_code?.trim()) newErrors[`variant_${index}_material_code`] = 'Material code is required';
+      if (!variant.mrp || Number(variant.mrp) <= 0) newErrors[`variant_${index}_mrp`] = 'Valid MRP is required';
     });
-    setErrors(prev => ({ ...prev, ...newErrors }));
+
+    setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
-
-  const validateForm = () => validateBasic() && validateVariants();
-
-  const handleNext = () => {
-    if (validateBasic()) {
-      setActiveTab('variants');
-    }
   };
 
   const handleSave = async () => {
@@ -498,544 +586,254 @@ const ProductFormModal = ({ isOpen, onClose, product, onSave }) => {
 
     setLoading(true);
     try {
-      const productData = { 
+      // 1. Save the main product data (which is JSON)
+      const productPayload = { 
         ...formData,
         category: parseInt(formData.category),
         brand: parseInt(formData.brand)
       };
       
-      let savedProduct;
-      if (product) {
-        savedProduct = await ProductAPI.updateProduct(product.id, productData);
-      } else {
-        savedProduct = await ProductAPI.createProduct(productData);
-      }
+      const productResponse = product 
+        ? await axiosInstance.put(`/api/catalog/products/${product.id}/`, productPayload)
+        : await axiosInstance.post('/api/catalog/products/', productPayload);
+      
+      const savedProduct = productResponse.data;
 
-      if (variants.length > 0) {
-        for (const variant of variants) {
-          const variantData = {
-            ...variant,
-            product: savedProduct.id,
-            size: variant.size ? parseInt(variant.size) : null,
-            color: variant.color ? parseInt(variant.color) : null,
-            mrp: parseFloat(variant.mrp),
-            value: parseFloat(variant.value),
-            tax_percentage: parseFloat(variant.tax_percentage || 18),
-            discount_percentage: parseFloat(variant.discount_percentage ?? 0),
-            stock_quantity: parseInt(variant.stock_quantity ?? 0)
-          };
+      // 2. Save each variant, handling images with FormData
+      for (const variant of variants) {
+        const variantFormData = new FormData();
+        variantFormData.append('product', savedProduct.id);
+        variantFormData.append('material_code', variant.material_code);
+        variantFormData.append('mrp', parseFloat(variant.mrp));
+        
+        // Append optional fields only if they have a value
+        if (variant.size_width) variantFormData.append('size_width', parseFloat(variant.size_width));
+        if (variant.size_height) variantFormData.append('size_height', parseFloat(variant.size_height));
+        if (variant.size_depth) variantFormData.append('size_depth', parseFloat(variant.size_depth));
+        if (variant.color_name) variantFormData.append('color_name', variant.color_name);
+        if (variant.sku_code) variantFormData.append('sku_code', variant.sku_code);
 
-          let savedVariant;
-          if (variant.id && !variant.id.toString().startsWith('temp_')) {
-            savedVariant = await ProductAPI.updateVariant(variant.id, variantData);
-          } else {
-            savedVariant = await ProductAPI.createVariant(variantData);
-          }
+        variantFormData.append('tax_rate', parseFloat(variant.tax_rate || 18));
+        variantFormData.append('discount_rate', parseFloat(variant.discount_rate || 0));
+        variantFormData.append('stock_quantity', parseInt(variant.stock_quantity || 0));
+        variantFormData.append('is_active', variant.is_active !== false);
 
-          // Upload any new files for this variant
-          if (variant.images && variant.images.length > 0) {
-            const files = variant.images.filter(img => img.file).map(img => img.file);
-            if (files.length) {
-              try {
-                await ProductAPI.uploadProductImages(savedVariant.id, files);
-              } catch (imageError) {
-                console.error('Error uploading images for variant:', savedVariant.id, imageError);
-              }
-            }
-          }
+        // Append the new image file if it exists
+        if (variant.imageFile) {
+          variantFormData.append('image', variant.imageFile);
+        }
+
+        const isNewVariant = !variant.id || variant.id.toString().startsWith('temp_');
+        
+        if (isNewVariant) {
+          await axiosInstance.post('/api/catalog/product-variants/', variantFormData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+          });
+        } else {
+          await axiosInstance.put(`/api/catalog/product-variants/${variant.id}/`, variantFormData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+          });
         }
       }
 
       onSave();
       onClose();
     } catch (error) {
-      console.error('Error saving product:', error);
-      const msg = error?.response?.data?.non_field_errors?.[0];
-      if (msg) {
-        alert(msg);
-      } else {
-        alert('Error saving product. Please try again.');
-      }
+      console.error('Error saving product and variants:', error.response?.data || error.message);
+      alert('An error occurred while saving. Please check the console for details.');
     } finally {
       setLoading(false);
     }
   };
 
-  const addVariant = () => {
-    const newVariant = {
-      id: `temp_${Date.now()}`, // Temporary ID for new variants
-      material_code: '',
-      size: '',
-      color: '',
-      custom_width: '',
-      custom_height: '',
-      custom_depth: '',
-      mrp: '',
-      tax_percentage: 18,
-      discount_percentage: 0,
-      value: '',
-      stock_quantity: 0,
-      sku_code: '',
-      is_active: true
-    };
-    setVariants([...variants, newVariant]);
-  };
-
-  const updateVariant = (index, field, value) => {
-    setVariants(prev => prev.map((variant, i) => 
-      i === index ? { ...variant, [field]: value } : variant
-    ));
-    
-    // Clear variant-specific errors
-    const errorKey = `variant_${index}_${field}`;
-    if (errors[errorKey]) {
-      setErrors(prev => ({ ...prev, [errorKey]: '' }));
-    }
-  };
-
-  const removeVariant = (index) => {
-    setVariants(prev => prev.filter((_, i) => i !== index));
-    
-    // Clear variant-specific errors
-    const newErrors = { ...errors };
-    Object.keys(newErrors).forEach(key => {
-      if (key.startsWith(`variant_${index}_`)) {
-        delete newErrors[key];
-      }
-    });
-    setErrors(newErrors);
-  };
-
   if (!isOpen) return null;
 
+  // --- Render ---
   return (
     <div className="pm-modal-backdrop">
-      <div className="pm-modal">
-        {/* Header */}
+      <div className="pm-modal pm-modal-lg">
         <div className="pm-modal-header">
           <div>
-            <h2 className="pm-modal-title">
-              {product ? 'Edit Product' : 'Add New Product'}
-            </h2>
-            <p className="pm-modal-subtitle">
-              {product ? 'Update product information and variants' : 'Create a new product with variants'}
-            </p>
+            <h2 className="pm-modal-title">{product ? 'Edit Product' : 'Add New Product'}</h2>
+            <p className="pm-modal-subtitle">{product ? 'Update product information and variants' : 'Create a new product with variants'}</p>
           </div>
-          <button
-            onClick={onClose}
-            className="pm-modal-close"
-            disabled={loading}
-          >
-            <X className="pm-icon" />
-          </button>
+          <button onClick={onClose} className="pm-modal-close" disabled={loading}><X className="pm-icon" /></button>
         </div>
 
-        {/* Tab Navigation */}
         <div className="pm-tabs">
-          {[
-            { key: 'basic', label: 'Basic Info', icon: Package },
-            { key: 'variants', label: 'Variants', icon: Layers },
-            { key: 'seo', label: 'SEO', icon: Tag }
-          ].map(({ key, label, icon: Icon }) => (
-            <button
-              key={key}
-              onClick={() => setActiveTab(key)}
-              className={`pm-tab ${activeTab === key ? 'active' : ''}`}
-              disabled={loading}
-            >
-              <Icon className="pm-icon-sm" />
-              {label}
+          {[{ key: 'basic', label: 'Basic Info', icon: Package }, { key: 'variants', label: 'Variants', icon: Layers }, { key: 'seo', label: 'SEO', icon: Tag }].map(({ key, label, icon: Icon }) => (
+            <button key={key} onClick={() => setActiveTab(key)} className={`pm-tab ${activeTab === key ? 'active' : ''}`} disabled={loading}>
+              <Icon className="pm-icon-sm" /> {label}
             </button>
           ))}
         </div>
 
-        {/* Form Content */}
         <div className="pm-modal-body">
-          {dataLoading ? (
-            <div className="pm-loading">
-              <RefreshCw className="pm-spinner" />
-              <span className="pm-loading-text">Loading form data...</span>
+          {activeTab === 'basic' && (
+            <div className="pm-form-grid pm-grid-2">
+              {/* Basic Info Fields: Name, Category, Brand, etc. */}
+              <div className="pm-form-group">
+                <label className="pm-label pm-required">Product Name</label>
+                <input type="text" value={formData.name} onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))} className={`pm-input ${errors.name ? 'pm-error' : ''}`} placeholder="Enter product name" disabled={loading} />
+                {errors.name && <p className="pm-error-text">{errors.name}</p>}
+              </div>
+              <div className="pm-form-group">
+                <label className="pm-label pm-required">Category</label>
+                <select value={formData.category} onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))} className={`pm-select ${errors.category ? 'pm-error' : ''}`} disabled={loading}>
+                  <option value="">Select Category</option>
+                  {categories.map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
+                </select>
+                {errors.category && <p className="pm-error-text">{errors.category}</p>}
+              </div>
+              <div className="pm-form-group">
+                <label className="pm-label pm-required">Brand</label>
+                <select value={formData.brand} onChange={(e) => setFormData(prev => ({ ...prev, brand: e.target.value }))} className={`pm-select ${errors.brand ? 'pm-error' : ''}`} disabled={loading}>
+                  <option value="">Select Brand</option>
+                  {brands.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+                </select>
+                {errors.brand && <p className="pm-error-text">{errors.brand}</p>}
+              </div>
+              <div className="pm-checkbox-group">
+                <input type="checkbox" checked={formData.is_active} onChange={(e) => setFormData(prev => ({ ...prev, is_active: e.target.checked }))} className="pm-checkbox" disabled={loading} />
+                <span className="pm-label">Active</span>
+              </div>
+              <div className="pm-form-group pm-full-width">
+                <label className="pm-label">Description</label>
+                <textarea value={formData.description} onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))} rows={4} className="pm-textarea" placeholder="Enter product description" disabled={loading} />
+              </div>
             </div>
-          ) : (
-            <>
-              {/* Basic Info Tab */}
-              {activeTab === 'basic' && (
-                <div className="pm-form-grid pm-grid-2">
-                  <div className="pm-form-group">
-                    <label className="pm-label pm-required">
-                      Product Name
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.name}
-                      onChange={(e) => handleInputChange('name', e.target.value)}
-                      className={`pm-input ${errors.name ? 'pm-error' : ''}`}
-                      placeholder="Enter product name"
-                      disabled={loading}
-                    />
-                    {errors.name && (
-                      <p className="pm-error-text">{errors.name}</p>
-                    )}
-                  </div>
-                  <div className="pm-form-group">
-                    <label className="pm-label pm-required">
-                      Category
-                    </label>
-                    <select
-                      value={formData.category}
-                      onChange={(e) => handleInputChange('category', e.target.value)}
-                      className={`pm-select ${errors.category ? 'pm-error' : ''}`}
-                      disabled={loading}
-                    >
-                      <option value="">Select Category</option>
-                      {categories.map(category => (
-                        <option key={category.id} value={category.id}>
-                          {category.name}
-                        </option>
-                      ))}
-                    </select>
-                    {errors.category && (
-                      <p className="pm-error-text">{errors.category}</p>
-                    )}
-                  </div>
+          )}
 
-                  <div className="pm-form-group">
-                    <label className="pm-label pm-required">
-                      Brand
-                    </label>
-                    <select
-                      value={formData.brand}
-                      onChange={(e) => handleInputChange('brand', e.target.value)}
-                      className={`pm-select ${errors.brand ? 'pm-error' : ''}`}
-                      disabled={loading}
-                    >
-                      <option value="">Select Brand</option>
-                      {brands.map(brand => (
-                        <option key={brand.id} value={brand.id}>
-                          {brand.name}
-                        </option>
-                      ))}
-                    </select>
-                    {errors.brand && (
-                      <p className="pm-error-text">{errors.brand}</p>
-                    )}
-                  </div>
-
-                  <div className="pm-checkbox-group">
-                    <input
-                      type="checkbox"
-                      checked={formData.is_active}
-                      onChange={(e) => handleInputChange('is_active', e.target.checked)}
-                      className="pm-checkbox"
-                      disabled={loading}
-                    />
-                    <span className="pm-label">Active</span>
-                  </div>
-                  
-                  <div className="pm-form-group">
-                    <label className="pm-label">
-                      Description
-                    </label>
-                    <textarea
-                      value={formData.description}
-                      onChange={(e) => handleInputChange('description', e.target.value)}
-                      rows={4}
-                      className="pm-textarea"
-                      placeholder="Enter product description"
-                      disabled={loading}
-                    />
-                  </div>
+          {activeTab === 'variants' && (
+            <div>
+              <div className="pm-section-header">
+                <h3 className="pm-section-title">Product Variants</h3>
+                <button onClick={addVariant} className="pm-btn pm-btn-primary" disabled={loading}><Plus className="pm-icon-sm" /> Add Variant</button>
+              </div>
+              {variants.length === 0 ? (
+                <div className="pm-empty">
+                  <Layers className="pm-empty-icon" />
+                  <h4 className="pm-empty-title">No variants added</h4>
+                  <p className="pm-empty-text">Add variants with specific sizes, colors, images, and prices.</p>
+                  <button onClick={addVariant} className="pm-btn pm-btn-primary" disabled={loading}><Plus className="pm-icon-sm" /> Add First Variant</button>
                 </div>
-              )}
-
-              {/* Variants Tab */}
-              {activeTab === 'variants' && (
+              ) : (
                 <div>
-                  <div className="pm-section-header">
-                    <h3 className="pm-section-title">Product Variants</h3>
-                    <button
-                      onClick={addVariant}
-                      className="pm-btn pm-btn-primary"
-                      disabled={loading}
-                    >
-                      <Plus className="pm-icon-sm" />
-                      Add Variant
-                    </button>
-                  </div>
-
-                  {variants.length === 0 ? (
-                    <div className="pm-empty">
-                      <Layers className="pm-empty-icon" />
-                      <h4 className="pm-empty-title">No variants added</h4>
-                      <p className="pm-empty-text">Add variants to specify different sizes, colors, and pricing</p>
-                      <button
-                        onClick={addVariant}
-                        className="pm-btn pm-btn-primary"
-                        disabled={loading}
-                      >
-                        <Plus className="pm-icon-sm" />
-                        Add First Variant
-                      </button>
-                    </div>
-                  ) : (
-                    <div>
-                      {variants.map((variant, index) => (
-                        <div key={variant.id || index} className="pm-variant-card">
-                          <div className="pm-variant-header">
-                            <h4 className="pm-variant-title">Variant {index + 1}</h4>
-                            <button
-                              onClick={() => removeVariant(index)}
-                              className="pm-btn-icon-text pm-btn-danger"
-                              disabled={loading}
-                            >
-                              <Trash2 className="pm-icon-sm" />
-                            </button>
-                          </div>
-
-                          <div className="pm-form-grid pm-grid-3">
-                            <div className="pm-form-group">
-                              <label className="pm-label pm-required">
-                                Material Code
-                              </label>
-                              <input
-                                type="text"
-                                value={variant.material_code || ''}
-                                onChange={(e) => updateVariant(index, 'material_code', e.target.value)}
-                                className={`pm-input ${errors[`variant_${index}_material_code`] ? 'pm-error' : ''}`}
-                                placeholder="e.g., BLU-KC-001-300"
-                                disabled={loading}
-                              />
-                              {errors[`variant_${index}_material_code`] && (
-                                <p className="pm-error-text">{errors[`variant_${index}_material_code`]}</p>
-                              )}
+                  {/* Hidden file input, controlled by ref */}
+                  <input type="file" ref={fileInputRef} onChange={handleFileSelected} accept="image/*" style={{ display: 'none' }} />
+                  {variants.map((variant, index) => (
+                    <div key={variant.id || index} className="pm-variant-card">
+                      <div className="pm-variant-header">
+                        <h4 className="pm-variant-title">Variant {index + 1}</h4>
+                        <button onClick={() => removeVariant(index)} className="pm-btn-icon-text pm-btn-danger" disabled={loading}><Trash2 className="pm-icon-sm" /> Remove</button>
+                      </div>
+                      <div className="pm-variant-content-grid">
+                        {/* Image Section */}
+                        <div className="pm-form-group pm-variant-image-section">
+                          <label className="pm-label">Image</label>
+                          {variant.imagePreview ? (
+                            <div className="pm-image-preview-wrapper">
+                              <img src={variant.imagePreview} alt="Variant" className="pm-image-preview" />
+                              <button onClick={() => removeVariantImage(index)} className="pm-btn-icon pm-btn-danger" title="Remove Image"><Trash2 className="pm-icon-sm" /></button>
                             </div>
-
-                            <div className="pm-form-group pm-full-width">
-                              <label className="pm-label">
-                                Product Images
-                              </label>
-                              
-                              {/* Image Upload Section */}
-                              <ImageUploadSection
-                                variantIndex={index}
-                                variant={variant}
-                                onImagesChange={updateVariant}
-                                loading={loading}
-                              />
+                          ) : (
+                            <div className="pm-image-placeholder" onClick={() => handleImageUploadClick(index)}>
+                              <Image className="pm-icon" />
+                              <span>Click to upload</span>
                             </div>
-
-                            <div className="pm-form-group">
-                              <label className="pm-label">
-                                Size
-                              </label>
-                              <select
-                                value={variant.size || ''}
-                                onChange={(e) => updateVariant(index, 'size', e.target.value)}
-                                className="pm-select"
-                                disabled={loading}
-                              >
-                                <option value="">Select Size</option>
-                                {sizes.map(size => (
-                                  <option key={size.id} value={size.id}>
-                                    {size.name} ({size.dimensions_display || `${size.width}×${size.height}×${size.depth}mm`})
-                                  </option>
-                                ))}
-                              </select>
-                            </div>
-
-                            <div className="pm-form-group">
-                              <label className="pm-label">
-                                Color
-                              </label>
-                              <select
-                                value={variant.color || ''}
-                                onChange={(e) => updateVariant(index, 'color', e.target.value)}
-                                className="pm-select"
-                                disabled={loading}
-                              >
-                                <option value="">Select Color</option>
-                                {colors.map(color => (
-                                  <option key={color.id} value={color.id}>
-                                    {color.name}
-                                  </option>
-                                ))}
-                              </select>
-                            </div>
-
-                            <div className="pm-form-group">
-                              <label className="pm-label pm-required">
-                                MRP (₹)
-                              </label>
-                              <input
-                                type="number"
-                                value={variant.mrp || ''}
-                                onChange={(e) => updateVariant(index, 'mrp', e.target.value)}
-                                className={`pm-input ${errors[`variant_${index}_mrp`] ? 'pm-error' : ''}`}
-                                placeholder="0.00"
-                                min="0"
-                                step="0.01"
-                                disabled={loading}
-                              />
-                              {errors[`variant_${index}_mrp`] && (
-                                <p className="pm-error-text">{errors[`variant_${index}_mrp`]}</p>
-                              )}
-                            </div>
-
-                            <div className="pm-form-group">
-                              <label className="pm-label pm-required">
-                                Selling Price (₹)
-                              </label>
-                              <input
-                                type="number"
-                                value={variant.value || ''}
-                                onChange={(e) => updateVariant(index, 'value', e.target.value)}
-                                className={`pm-input ${errors[`variant_${index}_value`] ? 'pm-error' : ''}`}
-                                placeholder="0.00"
-                                min="0"
-                                step="0.01"
-                                disabled={loading}
-                              />
-                              {errors[`variant_${index}_value`] && (
-                                <p className="pm-error-text">{errors[`variant_${index}_value`]}</p>
-                              )}
-                            </div>
-
-                            <div className="pm-form-group">
-                              <label className="pm-label">
-                                Stock Quantity
-                              </label>
-                              <input
-                                type="number"
-                                value={variant.stock_quantity || 0}
-                                onChange={(e) => updateVariant(index, 'stock_quantity', e.target.value)}
-                                className="pm-input"
-                                placeholder="0"
-                                min="0"
-                                disabled={loading}
-                              />
-                            </div>
-
-                            <div className="pm-form-group">
-                              <label className="pm-label">
-                                Tax (%)
-                              </label>
-                              <input
-                                type="number"
-                                value={variant.tax_percentage || 18}
-                                onChange={(e) => updateVariant(index, 'tax_percentage', e.target.value)}
-                                className="pm-input"
-                                placeholder="18"
-                                min="0"
-                                max="100"
-                                step="0.01"
-                                disabled={loading}
-                              />
-                            </div>
-
-                            <div className="pm-checkbox-group">
-                              <input
-                                type="checkbox"
-                                checked={variant.is_active !== false}
-                                onChange={(e) => updateVariant(index, 'is_active', e.target.checked)}
-                                className="pm-checkbox"
-                                disabled={loading}
-                              />
-                              <span className="pm-label">Active</span>
-                            </div>
-                          </div>
+                          )}
+                          {/* <button onClick={() => handleImageUploadClick(index)} className="pm-btn pm-btn-secondary pm-btn-full pm-mt-2"><Upload className="pm-icon-sm"/> {variant.imagePreview ? 'Change' : 'Upload'}</button> */}
                         </div>
-                      ))}
+                        {/* Details Section */}
+                        <div className="pm-variant-details-section">
+                          <div className="pm-form-grid pm-grid-3">
+                            {/* Material Code, Size, Color, Pricing */}
+                            <div className="pm-form-group">
+                                <label className="pm-label pm-required">Material Code</label>
+                                <input type="text" value={variant.material_code || ''} onChange={(e) => updateVariant(index, 'material_code', e.target.value)} className={`pm-input ${errors[`variant_${index}_material_code`] ? 'pm-error' : ''}`} placeholder="e.g., SS304-600" disabled={loading} />
+                            </div>
+                            <div className="pm-form-group">
+                                <label className="pm-label">Width (mm)</label>
+                                <input type="number" value={variant.size_width || ''} onChange={(e) => updateVariant(index, 'size_width', e.target.value)} className="pm-input" placeholder="Optional" min="0" step="0.01" disabled={loading} />
+                            </div>
+                            <div className="pm-form-group">
+                                <label className="pm-label">Height (mm)</label>
+                                <input type="number" value={variant.size_height || ''} onChange={(e) => updateVariant(index, 'size_height', e.target.value)} className="pm-input" placeholder="Optional" min="0" step="0.01" disabled={loading} />
+                            </div>
+                            <div className="pm-form-group">
+                                <label className="pm-label">Depth (mm)</label>
+                                <input type="number" value={variant.size_depth || ''} onChange={(e) => updateVariant(index, 'size_depth', e.target.value)} className="pm-input" placeholder="Optional" min="0" step="0.01" disabled={loading} />
+                            </div>
+                            <div className="pm-form-group">
+                                <label className="pm-label">Color</label>
+                                <input type="text" value={variant.color_name || ''} onChange={(e) => updateVariant(index, 'color_name', e.target.value)} className="pm-input" placeholder="e.g., Silver" disabled={loading} />
+                            </div>
+                             <div className="pm-form-group">
+                                <label className="pm-label pm-required">MRP (₹)</label>
+                                <input type="number" value={variant.mrp || ''} onChange={(e) => updateVariant(index, 'mrp', e.target.value)} className={`pm-input ${errors[`variant_${index}_mrp`] ? 'pm-error' : ''}`} placeholder="0.00" min="0" step="0.01" disabled={loading} />
+                            </div>
+                             <div className="pm-form-group">
+                                <label className="pm-label">Tax (%)</label>
+                                <input type="number" value={variant.tax_rate || 18} onChange={(e) => updateVariant(index, 'tax_rate', e.target.value)} className="pm-input" placeholder="18" min="0" max="100" step="0.01" disabled={loading} />
+                            </div>
+                             <div className="pm-form-group">
+                                <label className="pm-label">Discount (%)</label>
+                                <input type="number" value={variant.discount_rate || 0} onChange={(e) => updateVariant(index, 'discount_rate', e.target.value)} className="pm-input" placeholder="0" min="0" max="100" step="0.01" disabled={loading} />
+                            </div>
+                             <div className="pm-form-group">
+                                <label className="pm-label">Stock</label>
+                                <input type="number" value={variant.stock_quantity || 0} onChange={(e) => updateVariant(index, 'stock_quantity', e.target.value)} className="pm-input" placeholder="0" min="0" disabled={loading} />
+                            </div>
+                          </div>
+                          {variant.mrp && variant._calculated && (
+                            <div className="pm-card pm-mt-4 pm-price-preview">
+                              <h5 className="pm-heading-bold pm-mb-2"><Calculator className="pm-icon-sm" /> Price Preview</h5>
+                              <div className="pm-price-breakdown">
+                                <span>MRP: {PriceUtils.formatCurrency(variant.mrp)}</span>
+                                <span className="pm-text-success">+ Tax: {PriceUtils.formatCurrency(variant._calculated.tax_amount)}</span>
+                                <span className="pm-text-danger">- Disc: {PriceUtils.formatCurrency(variant._calculated.discount_amount)}</span>
+                                <span className="pm-text-accent pm-text-bold">= {PriceUtils.formatCurrency(variant._calculated.company_price)}</span>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                  )}
+                  ))}
                 </div>
               )}
+            </div>
+          )}
 
-              {/* SEO Tab */}
-              {activeTab === 'seo' && (
-                <div>
-                  <div className="pm-form-group">
-                    <label className="pm-label">
-                      Meta Title
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.meta_title}
-                      onChange={(e) => handleInputChange('meta_title', e.target.value)}
-                      className="pm-input"
-                      placeholder="Enter meta title for SEO"
-                      maxLength={60}
-                      disabled={loading}
-                    />
-                    <p className="pm-text-sm pm-text-secondary pm-mt-1">
-                      {formData.meta_title.length}/60 characters
-                    </p>
-                  </div>
-
-                  <div className="pm-form-group">
-                    <label className="pm-label">
-                      Meta Description
-                    </label>
-                    <textarea
-                      value={formData.meta_description}
-                      onChange={(e) => handleInputChange('meta_description', e.target.value)}
-                      rows={4}
-                      className="pm-textarea"
-                      placeholder="Enter meta description for SEO"
-                      maxLength={160}
-                      disabled={loading}
-                    />
-                    <p className="pm-text-sm pm-text-secondary pm-mt-1">
-                      {formData.meta_description.length}/160 characters
-                    </p>
-                  </div>
+          {activeTab === 'seo' && (
+            <div>
+              {/* SEO Fields: Meta Title, Meta Description */}
+               <div className="pm-form-group">
+                  <label className="pm-label">Meta Title</label>
+                  <input type="text" value={formData.meta_title} onChange={(e) => setFormData(prev => ({ ...prev, meta_title: e.target.value }))} className="pm-input" placeholder="Enter meta title for SEO" maxLength={60} disabled={loading} />
+                  <p className="pm-text-sm pm-text-secondary pm-mt-1">{formData.meta_title.length}/60 characters</p>
                 </div>
-              )}
-            </>
+                <div className="pm-form-group">
+                  <label className="pm-label">Meta Description</label>
+                  <textarea value={formData.meta_description} onChange={(e) => setFormData(prev => ({ ...prev, meta_description: e.target.value }))} rows={4} className="pm-textarea" placeholder="Enter meta description for SEO" maxLength={160} disabled={loading} />
+                  <p className="pm-text-sm pm-text-secondary pm-mt-1">{formData.meta_description.length}/160 characters</p>
+                </div>
+            </div>
           )}
         </div>
 
-        {/* Footer */}
         <div className="pm-modal-footer">
-          <button
-            onClick={onClose}
-            className="pm-btn pm-btn-secondary"
-            disabled={loading}
-          >
-            Cancel
+          <button onClick={onClose} className="pm-btn pm-btn-secondary" disabled={loading}>Cancel</button>
+          <button type="button" onClick={handleSave} disabled={loading} className="pm-btn pm-btn-primary">
+            {loading ? (<><div className="pm-spinner"></div>Saving...</>) : (<><Save className="pm-icon-sm" /> Save Product</>)}
           </button>
-
-          {activeTab === 'basic' ? (
-            <button
-              onClick={handleNext}
-              disabled={loading || dataLoading}
-              className="pm-btn pm-btn-primary"
-            >
-              Next
-            </button>
-          ) : (
-            <button
-              onClick={handleSave}
-              disabled={loading || dataLoading || (activeTab === 'variants' && variants.length === 0)}
-              className="pm-btn pm-btn-primary"
-            >
-              {loading ? (
-                <>
-                  <div className="pm-spinner"></div>
-                  Saving...
-                </>
-              ) : (
-                <>
-                  <Save className="pm-icon-sm" />
-                  Save Product
-                </>
-              )}
-            </button>
-          )}
         </div>
       </div>
     </div>
   );
 };
+
+
 
 // Product Detail Modal Component
 const ProductDetailModal = ({ isOpen, onClose, product }) => {

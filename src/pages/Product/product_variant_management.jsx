@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  Plus, Edit, Trash2, Eye, Package2, 
+  Plus, Edit, Trash2, Eye, Package2, Calculator,
   AlertTriangle, CheckCircle, XCircle, 
   Image, DollarSign, Palette, Ruler,
-  TrendingDown, TrendingUp, RefreshCw
+  TrendingDown, TrendingUp, RefreshCw, 
+  Save, X, Upload
 } from 'lucide-react';
+import { ProductAPI, PriceUtils } from '../../service/product_api_service';
 
 const ProductVariantManagement = ({ productId, productName }) => {
   const [variants, setVariants] = useState([]);
@@ -13,132 +15,123 @@ const ProductVariantManagement = ({ productId, productName }) => {
   const [showForm, setShowForm] = useState(false);
   const [stockUpdateId, setStockUpdateId] = useState(null);
   const [newStock, setNewStock] = useState('');
+  const [priceCalculator, setPriceCalculator] = useState({
+    show: false,
+    mrp: '',
+    taxRate: 18,
+    discountRate: 0,
+    result: null
+  });
 
-  // Mock data
   useEffect(() => {
-    loadVariants();
+    if (productId) {
+      loadVariants();
+    }
   }, [productId]);
 
   const loadVariants = async () => {
     setLoading(true);
-    // Mock API call
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    const mockVariants = [
-      {
-        id: 1,
-        material_code: 'BLU-KC-001-300-WH',
-        product_name: productName,
-        size_display: '300mm',
-        color_display: 'White',
-        value: 15500.00,
-        mrp: 18000.00,
-        discount_percentage: 13.89,
-        tax_percentage: 18.00,
-        stock_quantity: 25,
-        dimensions_display: 'W:300 × H:700 × D:560mm',
-        is_active: true,
-        primary_image: null,
-        created_at: '2024-01-15T10:30:00Z'
-      },
-      {
-        id: 2,
-        material_code: 'BLU-KC-001-450-BL',
-        product_name: productName,
-        size_display: '450mm',
-        color_display: 'Black',
-        value: 18200.00,
-        mrp: 21000.00,
-        discount_percentage: 13.33,
-        tax_percentage: 18.00,
-        stock_quantity: 8,
-        dimensions_display: 'W:450 × H:700 × D:560mm',
-        is_active: true,
-        primary_image: null,
-        created_at: '2024-01-16T11:45:00Z'
-      },
-      {
-        id: 3,
-        material_code: 'BLU-KC-001-600-WH',
-        product_name: productName,
-        size_display: '600mm',
-        color_display: 'White',
-        value: 22500.00,
-        mrp: 25000.00,
-        discount_percentage: 10.00,
-        tax_percentage: 18.00,
-        stock_quantity: 0,
-        dimensions_display: 'W:600 × H:700 × D:560mm',
-        is_active: true,
-        primary_image: null,
-        created_at: '2024-01-17T09:15:00Z'
-      }
-    ];
-    
-    setVariants(mockVariants);
-    setLoading(false);
+    try {
+      const response = await ProductAPI.getVariants({ product: productId });
+      setVariants(response.results || response || []);
+    } catch (error) {
+      console.error('Error loading variants:', error);
+      setVariants([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const getStockStatus = (quantity) => {
-    if (quantity === 0) return { status: 'out', label: 'Out of Stock', color: 'bg-red-100 text-red-800', icon: XCircle };
-    if (quantity <= 10) return { status: 'low', label: 'Low Stock', color: 'bg-yellow-100 text-yellow-800', icon: AlertTriangle };
-    return { status: 'good', label: 'In Stock', color: 'bg-green-100 text-green-800', icon: CheckCircle };
-  };
-
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
-      minimumFractionDigits: 2,
-    }).format(amount);
+    if (quantity === 0) return { 
+      status: 'out', 
+      label: 'Out of Stock', 
+      color: 'pm-badge-danger', 
+      icon: XCircle 
+    };
+    if (quantity <= 10) return { 
+      status: 'low', 
+      label: 'Low Stock', 
+      color: 'pm-badge-warning', 
+      icon: AlertTriangle 
+    };
+    return { 
+      status: 'good', 
+      label: 'In Stock', 
+      color: 'pm-badge-success', 
+      icon: CheckCircle 
+    };
   };
 
   const handleStockUpdate = async (variantId) => {
     if (!newStock || newStock < 0) return;
     
-    // Mock API call
-    await new Promise(resolve => setTimeout(resolve, 300));
-    
-    setVariants(prev => prev.map(variant => 
-      variant.id === variantId 
-        ? { ...variant, stock_quantity: parseInt(newStock) }
-        : variant
-    ));
-    
-    setStockUpdateId(null);
-    setNewStock('');
+    try {
+      await ProductAPI.updateVariantStock(variantId, newStock);
+      setVariants(prev => prev.map(variant => 
+        variant.id === variantId 
+          ? { ...variant, stock_quantity: parseInt(newStock) }
+          : variant
+      ));
+      setStockUpdateId(null);
+      setNewStock('');
+    } catch (error) {
+      console.error('Error updating stock:', error);
+      alert('Error updating stock. Please try again.');
+    }
+  };
+
+  const handlePriceCalculation = async () => {
+    if (!priceCalculator.mrp || priceCalculator.mrp <= 0) {
+      setPriceCalculator(prev => ({ ...prev, result: null }));
+      return;
+    }
+
+    try {
+      const result = await ProductAPI.calculatePrice({
+        mrp: priceCalculator.mrp,
+        tax_rate: priceCalculator.taxRate,
+        discount_rate: priceCalculator.discountRate
+      });
+      
+      setPriceCalculator(prev => ({ ...prev, result: result.calculations }));
+    } catch (error) {
+      console.error('Error calculating price:', error);
+      setPriceCalculator(prev => ({ ...prev, result: null }));
+    }
   };
 
   const VariantCard = ({ variant }) => {
     const stockStatus = getStockStatus(variant.stock_quantity);
     const StockIcon = stockStatus.icon;
 
+    // Calculate dimensions display
+    const dimensionsDisplay = PriceUtils.formatDimensions(
+      variant.size_width, 
+      variant.size_height, 
+      variant.size_depth
+    );
+
     return (
-      <div className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-md transition-shadow">
-        <div className="flex justify-between items-start mb-4">
+      <div className="pm-variant-card">
+        <div className="pm-variant-header">
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-2">
-              <h3 className="font-semibold text-gray-900">{variant.material_code}</h3>
-              <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                variant.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-              }`}>
+              <h3 className="pm-variant-title">{variant.material_code}</h3>
+              <span className={`pm-badge ${variant.is_active ? 'pm-badge-success' : 'pm-badge-danger'}`}>
                 {variant.is_active ? 'Active' : 'Inactive'}
               </span>
             </div>
             
-            <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
+            <div className="pm-form-grid pm-grid-2 pm-text-sm pm-text-secondary">
               <div className="flex items-center gap-1">
-                <Ruler className="w-4 h-4" />
-                {variant.size_display}
+                <Ruler className="pm-icon-sm" />
+                {dimensionsDisplay}
               </div>
               <div className="flex items-center gap-1">
-                <Palette className="w-4 h-4" />
-                {variant.color_display}
+                <Palette className="pm-icon-sm" />
+                {variant.color_name || 'Default'}
               </div>
-            </div>
-            
-            <div className="text-xs text-gray-500 mt-1">
-              {variant.dimensions_display}
             </div>
           </div>
           
@@ -146,42 +139,56 @@ const ProductVariantManagement = ({ productId, productName }) => {
             <img 
               src={variant.primary_image} 
               alt={variant.material_code}
-              className="w-16 h-16 object-cover rounded-lg"
+              className="w-16 h-16 object-cover rounded-lg border border-gray-700"
             />
           ) : (
-            <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center">
-              <Image className="w-6 h-6 text-gray-400" />
+            <div className="w-16 h-16 bg-gray-700 rounded-lg flex items-center justify-center">
+              <Image className="w-6 h-6 text-gray-500" />
             </div>
           )}
         </div>
 
-        {/* Pricing Information */}
-        <div className="bg-gray-50 rounded-lg p-4 mb-4">
-          <div className="grid grid-cols-2 gap-4">
+        {/* Pricing Information with Auto-calculated values */}
+        <div className="pm-card pm-mb-4">
+          <div className="pm-form-grid pm-grid-2 pm-text-sm">
             <div>
-              <p className="text-xs text-gray-600">MRP</p>
-              <p className="text-sm font-medium text-gray-900">{formatCurrency(variant.mrp)}</p>
+              <p className="pm-text-secondary">MRP</p>
+              <p className="pm-text-bold pm-text-primary">
+                {PriceUtils.formatCurrency(variant.mrp)}
+              </p>
             </div>
             <div>
-              <p className="text-xs text-gray-600">Selling Price</p>
-              <p className="text-lg font-bold text-blue-600">{formatCurrency(variant.value)}</p>
+              <p className="pm-text-secondary">Company Price</p>
+              <p className="pm-text-bold pm-text-accent">
+                {PriceUtils.formatCurrency(variant.company_price)}
+              </p>
             </div>
             <div>
-              <p className="text-xs text-gray-600">Discount</p>
-              <p className="text-sm text-green-600">{variant.discount_percentage.toFixed(2)}%</p>
+              <p className="pm-text-secondary">Tax ({variant.tax_rate}%)</p>
+              <p className="pm-text-success">
+                {PriceUtils.formatCurrency(variant.tax_amount)}
+              </p>
             </div>
             <div>
-              <p className="text-xs text-gray-600">Tax</p>
-              <p className="text-sm text-gray-900">{variant.tax_percentage.toFixed(2)}%</p>
+              <p className="pm-text-secondary">Discount ({variant.discount_rate}%)</p>
+              <p className="pm-text-danger">
+                -{PriceUtils.formatCurrency(variant.discount_amount)}
+              </p>
             </div>
+          </div>
+          
+          {/* Price Breakdown Indicator */}
+          <div className="pm-mt-2 pm-text-sm pm-text-secondary">
+            <Calculator className="pm-icon-sm" style={{ display: 'inline', marginRight: '0.25rem' }} />
+            Auto-calculated: MRP + Tax - Discount = Company Price
           </div>
         </div>
 
         {/* Stock Information */}
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between pm-mb-4">
           <div className="flex items-center gap-2">
-            <StockIcon className="w-4 h-4" />
-            <span className={`text-sm font-medium px-2 py-1 rounded-full ${stockStatus.color}`}>
+            <StockIcon className="pm-icon-sm" />
+            <span className={`pm-badge ${stockStatus.color}`}>
               {stockStatus.label}
             </span>
           </div>
@@ -193,23 +200,25 @@ const ProductVariantManagement = ({ productId, productName }) => {
                 value={newStock}
                 onChange={(e) => setNewStock(e.target.value)}
                 placeholder={variant.stock_quantity.toString()}
-                className="w-20 px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+                className="pm-input w-20 pm-text-sm"
                 min="0"
               />
               <button
                 onClick={() => handleStockUpdate(variant.id)}
-                className="px-2 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700"
+                className="pm-btn-icon pm-btn-success"
+                title="Save Stock"
               >
-                Save
+                <Save className="pm-icon-sm" />
               </button>
               <button
                 onClick={() => {
                   setStockUpdateId(null);
                   setNewStock('');
                 }}
-                className="px-2 py-1 bg-gray-300 text-gray-700 text-sm rounded hover:bg-gray-400"
+                className="pm-btn-icon pm-btn-secondary"
+                title="Cancel"
               >
-                Cancel
+                <X className="pm-icon-sm" />
               </button>
             </div>
           ) : (
@@ -218,7 +227,7 @@ const ProductVariantManagement = ({ productId, productName }) => {
                 setStockUpdateId(variant.id);
                 setNewStock(variant.stock_quantity.toString());
               }}
-              className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+              className="pm-text-sm pm-text-accent hover:pm-text-primary pm-text-bold"
             >
               Stock: {variant.stock_quantity} units
             </button>
@@ -226,33 +235,34 @@ const ProductVariantManagement = ({ productId, productName }) => {
         </div>
 
         {/* Actions */}
-        <div className="flex justify-between items-center pt-4 border-t border-gray-100">
-          <span className="text-xs text-gray-500">
-            Created: {new Date(variant.created_at).toLocaleDateString()}
+        <div className="flex justify-between items-center pt-4 border-t border-gray-700">
+          <span className="pm-text-sm pm-text-secondary">
+            Created: {variant.created_at ? new Date(variant.created_at).toLocaleDateString() : 'N/A'}
           </span>
-          <div className="flex gap-2">
+          <div className="pm-action-group">
             <button 
               onClick={() => setSelectedVariant(variant)}
-              className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
+              className="pm-btn-icon"
               title="View Details"
             >
-              <Eye className="w-4 h-4" />
+              <Eye className="pm-icon-sm" />
             </button>
             <button 
               onClick={() => {
                 setSelectedVariant(variant);
                 setShowForm(true);
               }}
-              className="p-1 text-gray-400 hover:text-green-600 transition-colors"
+              className="pm-btn-icon"
               title="Edit Variant"
             >
-              <Edit className="w-4 h-4" />
+              <Edit className="pm-icon-sm" />
             </button>
             <button 
-              className="p-1 text-gray-400 hover:text-red-600 transition-colors"
+              onClick={() => handleDeleteVariant(variant.id)}
+              className="pm-btn-icon pm-btn-danger"
               title="Delete Variant"
             >
-              <Trash2 className="w-4 h-4" />
+              <Trash2 className="pm-icon-sm" />
             </button>
           </div>
         </div>
@@ -267,122 +277,219 @@ const ProductVariantManagement = ({ productId, productName }) => {
     const outOfStockCount = variants.filter(v => v.stock_quantity === 0).length;
 
     return (
-      <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+      <div className="pm-card pm-mb-6">
+        <div className="pm-form-grid pm-grid-4">
           <div className="text-center">
-            <div className="text-2xl font-bold text-blue-600">{totalVariants}</div>
-            <div className="text-sm text-gray-600">Total Variants</div>
+            <div className="pm-stats-value pm-text-accent">{totalVariants}</div>
+            <div className="pm-text-sm pm-text-secondary">Total Variants</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-green-600">{activeVariants}</div>
-            <div className="text-sm text-gray-600">Active</div>
+            <div className="pm-stats-value pm-text-success">{activeVariants}</div>
+            <div className="pm-text-sm pm-text-secondary">Active</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-yellow-600">{lowStockCount}</div>
-            <div className="text-sm text-gray-600">Low Stock</div>
+            <div className="pm-stats-value pm-text-warning">{lowStockCount}</div>
+            <div className="pm-text-sm pm-text-secondary">Low Stock</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-red-600">{outOfStockCount}</div>
-            <div className="text-sm text-gray-600">Out of Stock</div>
+            <div className="pm-stats-value pm-text-danger">{outOfStockCount}</div>
+            <div className="pm-text-sm pm-text-secondary">Out of Stock</div>
           </div>
         </div>
       </div>
     );
   };
 
+  // Price Calculator Component
+  const PriceCalculator = () => (
+    <div className="pm-card pm-mb-6">
+      <div className="pm-section-header pm-mb-4">
+        <h3 className="pm-section-title">
+          <Calculator className="pm-icon-sm" style={{ display: 'inline', marginRight: '0.5rem' }} />
+          Price Calculator
+        </h3>
+        <button
+          onClick={() => setPriceCalculator(prev => ({ ...prev, show: !prev.show }))}
+          className="pm-btn pm-btn-secondary"
+        >
+          {priceCalculator.show ? 'Hide' : 'Show'}
+        </button>
+      </div>
+
+      {priceCalculator.show && (
+        <>
+          <div className="pm-form-grid pm-grid-3 pm-mb-4">
+            <div className="pm-form-group">
+              <label className="pm-label">MRP (₹)</label>
+              <input
+                type="number"
+                value={priceCalculator.mrp}
+                onChange={(e) => {
+                  setPriceCalculator(prev => ({ ...prev, mrp: e.target.value }));
+                  // Auto-calculate on change
+                  if (e.target.value && e.target.value > 0) {
+                    handlePriceCalculation();
+                  }
+                }}
+                className="pm-input"
+                placeholder="Enter MRP"
+                min="0"
+                step="0.01"
+              />
+            </div>
+            <div className="pm-form-group">
+              <label className="pm-label">Tax Rate (%)</label>
+              <input
+                type="number"
+                value={priceCalculator.taxRate}
+                onChange={(e) => {
+                  setPriceCalculator(prev => ({ ...prev, taxRate: e.target.value }));
+                  handlePriceCalculation();
+                }}
+                className="pm-input"
+                min="0"
+                max="100"
+                step="0.01"
+              />
+            </div>
+            <div className="pm-form-group">
+              <label className="pm-label">Discount Rate (%)</label>
+              <input
+                type="number"
+                value={priceCalculator.discountRate}
+                onChange={(e) => {
+                  setPriceCalculator(prev => ({ ...prev, discountRate: e.target.value }));
+                  handlePriceCalculation();
+                }}
+                className="pm-input"
+                min="0"
+                max="100"
+                step="0.01"
+              />
+            </div>
+          </div>
+
+          {priceCalculator.result && (
+            <div className="pm-card">
+              <h4 className="pm-heading-bold pm-mb-3">Calculation Result</h4>
+              <div className="pm-form-grid pm-grid-2 pm-text-sm">
+                <div>
+                  <span className="pm-text-secondary">MRP:</span>
+                  <span className="pm-ml-2 pm-text-bold">
+                    {PriceUtils.formatCurrency(priceCalculator.result.mrp)}
+                  </span>
+                </div>
+                <div>
+                  <span className="pm-text-secondary">Tax Amount:</span>
+                  <span className="pm-ml-2 pm-text-success">
+                    {PriceUtils.formatCurrency(priceCalculator.result.tax_amount)}
+                  </span>
+                </div>
+                <div>
+                  <span className="pm-text-secondary">Discount Amount:</span>
+                  <span className="pm-ml-2 pm-text-danger">
+                    -{PriceUtils.formatCurrency(priceCalculator.result.discount_amount)}
+                  </span>
+                </div>
+                <div>
+                  <span className="pm-text-secondary">Final Company Price:</span>
+                  <span className="pm-ml-2 pm-text-accent pm-text-bold">
+                    {PriceUtils.formatCurrency(priceCalculator.result.company_price)}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+
+  const handleDeleteVariant = async (variantId) => {
+    if (window.confirm('Are you sure you want to delete this variant? This action cannot be undone.')) {
+      try {
+        await ProductAPI.deleteVariant(variantId);
+        await loadVariants(); // Refresh the list
+        alert('Variant deleted successfully');
+      } catch (error) {
+        console.error('Error deleting variant:', error);
+        alert('Error deleting variant. Please try again.');
+      }
+    }
+  };
+
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <RefreshCw className="w-6 h-6 animate-spin text-blue-600 mr-2" />
-        <span className="text-gray-600">Loading variants...</span>
+      <div className="pm-loading">
+        <RefreshCw className="pm-spinner" />
+        <span className="pm-loading-text">Loading variants...</span>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-xl font-semibold text-gray-900">Product Variants</h2>
-          <p className="text-gray-600">{productName}</p>
-        </div>
-        <div className="flex gap-3">
-          <button
-            onClick={loadVariants}
-            className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
-          >
-            <RefreshCw className="w-4 h-4" />
-            Refresh
-          </button>
-          <button
-            onClick={() => {
-              setSelectedVariant(null);
-              setShowForm(true);
-            }}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-          >
-            <Plus className="w-4 h-4" />
-            Add Variant
-          </button>
-        </div>
-      </div>
-
-      {/* Stats */}
-      <StatsBar />
-
-      {/* Variants Grid */}
-      {variants.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {variants.map(variant => (
-            <VariantCard key={variant.id} variant={variant} />
-          ))}
-        </div>
-      ) : (
-        <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
-          <Package2 className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No variants found</h3>
-          <p className="text-gray-600 mb-6">
-            This product doesn't have any variants yet. Add the first variant to get started.
-          </p>
-          <button
-            onClick={() => {
-              setSelectedVariant(null);
-              setShowForm(true);
-            }}
-            className="flex items-center gap-2 mx-auto px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-          >
-            <Plus className="w-4 h-4" />
-            Add First Variant
-          </button>
-        </div>
-      )}
-
-      {/* Variant Form Modal - You can implement this as needed */}
-      {showForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full">
-            <h3 className="text-lg font-semibold mb-4">
-              {selectedVariant ? 'Edit Variant' : 'Add New Variant'}
-            </h3>
-            <p className="text-gray-600 mb-6">Variant form implementation goes here...</p>
-            <div className="flex justify-end gap-3">
-              <button
-                onClick={() => setShowForm(false)}
-                className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => setShowForm(false)}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-              >
-                Save
-              </button>
-            </div>
+    <div className="pm-container">
+      <div className="pm-wrapper">
+        {/* Header */}
+        <div className="pm-section-header pm-mb-6">
+          <div>
+            <h2 className="pm-title">Product Variants</h2>
+            <p className="pm-subtitle">{productName}</p>
+          </div>
+          <div className="pm-btn-group">
+            <button
+              onClick={loadVariants}
+              className="pm-btn pm-btn-secondary"
+            >
+              <RefreshCw className="pm-icon-sm" />
+              Refresh
+            </button>
+            <button
+              onClick={() => {
+                setSelectedVariant(null);
+                setShowForm(true);
+              }}
+              className="pm-btn pm-btn-primary"
+            >
+              <Plus className="pm-icon-sm" />
+              Add Variant
+            </button>
           </div>
         </div>
-      )}
+
+        {/* Stats */}
+        <StatsBar />
+
+        {/* Price Calculator */}
+        <PriceCalculator />
+
+        {/* Variants Grid */}
+        {variants.length > 0 ? (
+          <div className="pm-product-grid">
+            {variants.map(variant => (
+              <VariantCard key={variant.id} variant={variant} />
+            ))}
+          </div>
+        ) : (
+          <div className="pm-empty">
+            <Package2 className="pm-empty-icon" />
+            <h3 className="pm-empty-title">No variants found</h3>
+            <p className="pm-empty-text">
+              This product doesn't have any variants yet. Add the first variant to get started.
+            </p>
+            <button
+              onClick={() => {
+                setSelectedVariant(null);
+                setShowForm(true);
+              }}
+              className="pm-btn pm-btn-primary"
+            >
+              <Plus className="pm-icon-sm" />
+              Add First Variant
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

@@ -1,90 +1,9 @@
 import axiosInstance from './api';
 
-// ============================================================================
-// Product Categories API
-// ============================================================================
-export const CategoryService = {
-  getAll: async () => {
-    try {
-      const response = await axiosInstance.get('/api/catalog/categories/');
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching categories:', error);
-      throw error;
-    }
-  },
-
-  getById: async (id) => {
-    try {
-      const response = await axiosInstance.get(`/api/catalog/categories/${id}/`);
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching category:', error);
-      throw error;
-    }
-  },
-
-  create: async (categoryData) => {
-    try {
-      const response = await axiosInstance.post('/api/catalog/categories/', categoryData);
-      return response.data;
-    } catch (error) {
-      console.error('Error creating category:', error);
-      throw error;
-    }
-  },
-
-  update: async (id, categoryData) => {
-    try {
-      const response = await axiosInstance.put(`/api/catalog/categories/${id}/`, categoryData);
-      return response.data;
-    } catch (error) {
-      console.error('Error updating category:', error);
-      throw error;
-    }
-  },
-
-  delete: async (id) => {
-    try {
-      const response = await axiosInstance.delete(`/api/catalog/categories/${id}/`);
-      return response.data;
-    } catch (error) {
-      console.error('Error deleting category:', error);
-      throw error;
-    }
-  },
-
-  getProducts: async (categoryId) => {
-    try {
-      const response = await axiosInstance.get(`/api/catalog/categories/${categoryId}/products/`);
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching category products:', error);
-      throw error;
-    }
-  },
-
-  getBrands: async (categoryId) => {
-    try {
-      const response = await axiosInstance.get(`/api/catalog/categories/${categoryId}/brands/`);
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching category brands:', error);
-      throw error;
-    }
-  }
-};
-
-// ============================================================================
-// Brands API
-// ============================================================================
-
-
-// ============================================================================
-// Products API
-// ============================================================================
-export const ProductService = {
-  getAll: async (params = {}) => {
+// Product API Service aligned with your updated backend
+export const ProductAPI = {
+  // Product CRUD operations
+  getProducts: async (params = {}) => {
     try {
       const response = await axiosInstance.get('/api/catalog/products/', { params });
       return response.data;
@@ -94,7 +13,7 @@ export const ProductService = {
     }
   },
 
-  getById: async (id) => {
+  getProductById: async (id) => {
     try {
       const response = await axiosInstance.get(`/api/catalog/products/${id}/`);
       return response.data;
@@ -104,7 +23,7 @@ export const ProductService = {
     }
   },
 
-  create: async (productData) => {
+  createProduct: async (productData) => {
     try {
       const response = await axiosInstance.post('/api/catalog/products/', productData);
       return response.data;
@@ -114,7 +33,7 @@ export const ProductService = {
     }
   },
 
-  update: async (id, productData) => {
+  updateProduct: async (id, productData) => {
     try {
       const response = await axiosInstance.put(`/api/catalog/products/${id}/`, productData);
       return response.data;
@@ -124,7 +43,7 @@ export const ProductService = {
     }
   },
 
-  delete: async (id) => {
+  deleteProduct: async (id) => {
     try {
       const response = await axiosInstance.delete(`/api/catalog/products/${id}/`);
       return response.data;
@@ -134,7 +53,7 @@ export const ProductService = {
     }
   },
 
-  search: async (searchParams) => {
+  searchProducts: async (searchParams) => {
     try {
       const response = await axiosInstance.get('/api/catalog/products/search/', { params: searchParams });
       return response.data;
@@ -144,85 +63,160 @@ export const ProductService = {
     }
   },
 
-  getVariants: async (productId) => {
-    try {
-      const response = await axiosInstance.get(`/api/catalog/products/${productId}/variants/`);
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching product variants:', error);
-      throw error;
-    }
-  },
-
-  getLowStock: async (threshold = 10) => {
-    try {
-      const response = await axiosInstance.get('/api/catalog/products/low-stock/', { params: { threshold } });
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching low stock products:', error);
-      throw error;
-    }
-  }
-};
-
-// ============================================================================
-// Product Variants API
-// ============================================================================
-export const ProductVariantService = {
-  getAll: async (params = {}) => {
+  // Product Variant operations with simplified structure
+  getVariants: async (params = {}) => {
     try {
       const response = await axiosInstance.get('/api/catalog/product-variants/', { params });
       return response.data;
     } catch (error) {
-      console.error('Error fetching product variants:', error);
+      console.error('Error fetching variants:', error);
       throw error;
     }
   },
 
-  getById: async (id) => {
+  createVariant: async (variantData) => {
     try {
-      const response = await axiosInstance.get(`/api/catalog/product-variants/${id}/`);
+      // Structure for your simplified backend
+      const payload = {
+        product: variantData.product,
+        
+        // Simplified size inputs
+        size_width: parseFloat(variantData.size_width) || null,
+        size_height: parseFloat(variantData.size_height) || null,
+        size_depth: parseFloat(variantData.size_depth) || null,
+        
+        // Simplified color input
+        color_name: variantData.color_name || '',
+        
+        // Material code
+        material_code: variantData.material_code,
+        
+        // Pricing (backend will auto-calculate tax_amount, discount_amount, company_price)
+        mrp: parseFloat(variantData.mrp),
+        tax_rate: parseFloat(variantData.tax_rate || 18),
+        discount_rate: parseFloat(variantData.discount_rate || 0),
+        
+        // Other fields
+        stock_quantity: parseInt(variantData.stock_quantity || 0),
+        sku_code: variantData.sku_code || '',
+        is_active: variantData.is_active !== false
+      };
+      
+      const response = await axiosInstance.post('/api/catalog/product-variants/', payload);
       return response.data;
     } catch (error) {
-      console.error('Error fetching product variant:', error);
+      console.error('Error creating variant:', error);
       throw error;
     }
   },
 
-  create: async (variantData) => {
+  updateVariant: async (id, variantData) => {
     try {
-      const response = await axiosInstance.post('/api/catalog/product-variants/', variantData);
+      const payload = {
+        // Only include fields that can be updated
+        size_width: parseFloat(variantData.size_width) || null,
+        size_height: parseFloat(variantData.size_height) || null,
+        size_depth: parseFloat(variantData.size_depth) || null,
+        color_name: variantData.color_name || '',
+        material_code: variantData.material_code,
+        mrp: parseFloat(variantData.mrp),
+        tax_rate: parseFloat(variantData.tax_rate || 18),
+        discount_rate: parseFloat(variantData.discount_rate || 0),
+        stock_quantity: parseInt(variantData.stock_quantity || 0),
+        sku_code: variantData.sku_code || '',
+        is_active: variantData.is_active !== false
+      };
+
+      const response = await axiosInstance.put(`/api/catalog/product-variants/${id}/`, payload);
       return response.data;
     } catch (error) {
-      console.error('Error creating product variant:', error);
+      console.error('Error updating variant:', error);
       throw error;
     }
   },
 
-  update: async (id, variantData) => {
-    try {
-      const response = await axiosInstance.put(`/api/catalog/product-variants/${id}/`, variantData);
-      return response.data;
-    } catch (error) {
-      console.error('Error updating product variant:', error);
-      throw error;
-    }
-  },
-
-  delete: async (id) => {
+  deleteVariant: async (id) => {
     try {
       const response = await axiosInstance.delete(`/api/catalog/product-variants/${id}/`);
       return response.data;
     } catch (error) {
-      console.error('Error deleting product variant:', error);
+      console.error('Error deleting variant:', error);
       throw error;
     }
   },
 
-  updateStock: async (id, stockQuantity) => {
+  // NEW: Price calculation endpoints
+  calculatePrice: async (priceData) => {
+    try {
+      const response = await axiosInstance.post('/api/catalog/calculate-price/', {
+        mrp: parseFloat(priceData.mrp),
+        tax_rate: parseFloat(priceData.tax_rate || 18),
+        discount_rate: parseFloat(priceData.discount_rate || 0)
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error calculating price:', error);
+      throw error;
+    }
+  },
+
+  // NEW: Update variant pricing with auto-recalculation
+  updateVariantPricing: async (id, pricingData) => {
+    try {
+      const response = await axiosInstance.post(`/api/catalog/product-variants/${id}/update-pricing/`, {
+        mrp: parseFloat(pricingData.mrp),
+        tax_rate: parseFloat(pricingData.tax_rate),
+        discount_rate: parseFloat(pricingData.discount_rate)
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error updating variant pricing:', error);
+      throw error;
+    }
+  },
+
+  // NEW: Get detailed price breakdown for a variant
+  getVariantPriceBreakdown: async (id) => {
+    try {
+      const response = await axiosInstance.get(`/api/catalog/product-variants/${id}/price-breakdown/`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching price breakdown:', error);
+      throw error;
+    }
+  },
+
+  // NEW: Search variants by color
+  getVariantsByColor: async (color) => {
+    try {
+      const response = await axiosInstance.get('/api/catalog/product-variants/by-color/', {
+        params: { color }
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching variants by color:', error);
+      throw error;
+    }
+  },
+
+  // NEW: Search variants by size range
+  getVariantsBySizeRange: async (sizeParams) => {
+    try {
+      const response = await axiosInstance.get('/api/catalog/product-variants/by-size-range/', {
+        params: sizeParams
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching variants by size range:', error);
+      throw error;
+    }
+  },
+
+  // Stock management
+  updateVariantStock: async (id, stockQuantity) => {
     try {
       const response = await axiosInstance.post(`/api/catalog/product-variants/${id}/update-stock/`, {
-        stock_quantity: stockQuantity
+        stock_quantity: parseInt(stockQuantity)
       });
       return response.data;
     } catch (error) {
@@ -231,189 +225,77 @@ export const ProductVariantService = {
     }
   },
 
-  getPriceHistory: async (id) => {
+  // Image upload for variants
+  uploadVariantImages: async (variantId, files) => {
     try {
-      const response = await axiosInstance.get(`/api/catalog/product-variants/${id}/price-history/`);
+      const formData = new FormData();
+      files.forEach((file, index) => {
+        formData.append(`images`, file);
+        formData.append(`alt_text_${index}`, file.name);
+      });
+      
+      const response = await axiosInstance.post(
+        `/api/catalog/product-variants/${variantId}/upload-images/`, 
+        formData, 
+        {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        }
+      );
       return response.data;
     } catch (error) {
-      console.error('Error fetching price history:', error);
+      console.error('Error uploading images:', error);
       throw error;
     }
   },
 
-  getLowStock: async (threshold = 10) => {
+  // Reference data
+  getCategories: async () => {
     try {
-      const response = await axiosInstance.get('/api/catalog/product-variants/low-stock/', { params: { threshold } });
+      const response = await axiosInstance.get('/api/catalog/categories/');
       return response.data;
     } catch (error) {
-      console.error('Error fetching low stock variants:', error);
-      throw error;
-    }
-  }
-};
-
-// ============================================================================
-// Colors API
-// ============================================================================
-export const ColorService = {
-  getAll: async () => {
-    try {
-      const response = await axiosInstance.get('/api/catalog/colors/');
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching colors:', error);
+      console.error('Error fetching categories:', error);
       throw error;
     }
   },
 
-  create: async (colorData) => {
+  getBrands: async () => {
     try {
-      const response = await axiosInstance.post('/api/catalog/colors/', colorData);
+      const response = await axiosInstance.get('/api/catalog/brands/');
       return response.data;
     } catch (error) {
-      console.error('Error creating color:', error);
+      console.error('Error fetching brands:', error);
       throw error;
     }
   },
 
-  update: async (id, colorData) => {
+  // NEW: Get catalog utilities (colors, size ranges, etc.)
+  getCatalogUtilities: async () => {
     try {
-      const response = await axiosInstance.put(`/api/catalog/colors/${id}/`, colorData);
+      const response = await axiosInstance.get('/api/catalog/utilities/');
       return response.data;
     } catch (error) {
-      console.error('Error updating color:', error);
+      console.error('Error fetching catalog utilities:', error);
       throw error;
     }
   },
 
-  delete: async (id) => {
-    try {
-      const response = await axiosInstance.delete(`/api/catalog/colors/${id}/`);
-      return response.data;
-    } catch (error) {
-      console.error('Error deleting color:', error);
-      throw error;
-    }
-  }
-};
-
-// ============================================================================
-// Product Sizes API
-// ============================================================================
-export const ProductSizeService = {
-  getAll: async (params = {}) => {
-    try {
-      const response = await axiosInstance.get('/api/catalog/product-sizes/', { params });
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching product sizes:', error);
-      throw error;
-    }
-  },
-
-  create: async (sizeData) => {
-    try {
-      const response = await axiosInstance.post('/api/catalog/product-sizes/', sizeData);
-      return response.data;
-    } catch (error) {
-      console.error('Error creating product size:', error);
-      throw error;
-    }
-  },
-
-  update: async (id, sizeData) => {
-    try {
-      const response = await axiosInstance.put(`/api/catalog/product-sizes/${id}/`, sizeData);
-      return response.data;
-    } catch (error) {
-      console.error('Error updating product size:', error);
-      throw error;
-    }
-  },
-
-  delete: async (id) => {
-    try {
-      const response = await axiosInstance.delete(`/api/catalog/product-sizes/${id}/`);
-      return response.data;
-    } catch (error) {
-      console.error('Error deleting product size:', error);
-      throw error;
-    }
-  }
-};
-
-// ============================================================================
-// Cabinet Materials API
-// ============================================================================
-export const CabinetMaterialService = {
-  getAll: async () => {
-    try {
-      const response = await axiosInstance.get('/api/catalog/cabinet-materials/');
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching cabinet materials:', error);
-      throw error;
-    }
-  },
-
-  getPricingList: async () => {
-    try {
-      const response = await axiosInstance.get('/api/catalog/cabinet-materials/pricing-list/');
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching cabinet materials pricing:', error);
-      throw error;
-    }
-  },
-
-  create: async (materialData) => {
-    try {
-      const response = await axiosInstance.post('/api/catalog/cabinet-materials/', materialData);
-      return response.data;
-    } catch (error) {
-      console.error('Error creating cabinet material:', error);
-      throw error;
-    }
-  },
-
-  update: async (id, materialData) => {
-    try {
-      const response = await axiosInstance.put(`/api/catalog/cabinet-materials/${id}/`, materialData);
-      return response.data;
-    } catch (error) {
-      console.error('Error updating cabinet material:', error);
-      throw error;
-    }
-  },
-
-  delete: async (id) => {
-    try {
-      const response = await axiosInstance.delete(`/api/catalog/cabinet-materials/${id}/`);
-      return response.data;
-    } catch (error) {
-      console.error('Error deleting cabinet material:', error);
-      throw error;
-    }
-  }
-};
-
-// ============================================================================
-// Dashboard and Analytics API
-// ============================================================================
-export const CatalogAnalyticsService = {
+  // Dashboard and analytics
   getDashboard: async () => {
     try {
       const response = await axiosInstance.get('/api/catalog/dashboard/');
       return response.data;
     } catch (error) {
-      console.error('Error fetching catalog dashboard:', error);
+      console.error('Error fetching dashboard:', error);
       throw error;
     }
   },
 
   getSearchSuggestions: async (query) => {
     try {
-      const response = await axiosInstance.get('/api/catalog/search-suggestions/', { params: { q: query } });
+      const response = await axiosInstance.get('/api/catalog/search-suggestions/', {
+        params: { q: query }
+      });
       return response.data;
     } catch (error) {
       console.error('Error fetching search suggestions:', error);
@@ -421,11 +303,8 @@ export const CatalogAnalyticsService = {
     }
   },
 
-  getPriceAnalysis: async (categoryId = null, brandId = null) => {
+  getPriceAnalysis: async (params = {}) => {
     try {
-      const params = {};
-      if (categoryId) params.category = categoryId;
-      if (brandId) params.brand = brandId;
       const response = await axiosInstance.get('/api/catalog/price-analysis/', { params });
       return response.data;
     } catch (error) {
@@ -445,24 +324,69 @@ export const CatalogAnalyticsService = {
   }
 };
 
-// ============================================================================
-// Utility Functions
-// ============================================================================
-export const formatCurrency = (amount) => {
-  return new Intl.NumberFormat('en-IN', {
-    style: 'currency',
-    currency: 'INR',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(amount);
+// Utility functions for price calculations
+export const PriceUtils = {
+  calculateTax: (mrp, taxRate = 18) => {
+    return (parseFloat(mrp) * parseFloat(taxRate)) / 100;
+  },
+
+  calculateDiscount: (mrp, discountRate = 0) => {
+    return (parseFloat(mrp) * parseFloat(discountRate)) / 100;
+  },
+
+  calculateCompanyPrice: (mrp, taxRate = 18, discountRate = 0) => {
+    const tax = PriceUtils.calculateTax(mrp, taxRate);
+    const discount = PriceUtils.calculateDiscount(mrp, discountRate);
+    return parseFloat(mrp) + tax - discount;
+  },
+
+  formatCurrency: (amount) => {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      minimumFractionDigits: 2,
+    }).format(amount);
+  },
+
+  formatDimensions: (width, height, depth) => {
+    const parts = [];
+    if (width) parts.push(`W:${width}`);
+    if (height) parts.push(`H:${height}`);
+    if (depth) parts.push(`D:${depth}`);
+    return parts.length ? parts.join(' × ') + 'mm' : 'Custom';
+  }
 };
 
-export const formatNumber = (num) => {
-  return new Intl.NumberFormat('en-IN').format(num);
+// Hook for real-time price calculation
+export const usePriceCalculation = (mrp, taxRate = 18, discountRate = 0) => {
+  const [calculations, setCalculations] = React.useState(null);
+  const [loading, setLoading] = React.useState(false);
+
+  React.useEffect(() => {
+    if (mrp && mrp > 0) {
+      setLoading(true);
+      
+      // Calculate immediately for instant feedback
+      const taxAmount = PriceUtils.calculateTax(mrp, taxRate);
+      const discountAmount = PriceUtils.calculateDiscount(mrp, discountRate);
+      const companyPrice = PriceUtils.calculateCompanyPrice(mrp, taxRate, discountRate);
+      
+      setCalculations({
+        mrp: parseFloat(mrp),
+        tax_rate: parseFloat(taxRate),
+        tax_amount: taxAmount,
+        discount_rate: parseFloat(discountRate),
+        discount_amount: discountAmount,
+        company_price: companyPrice
+      });
+      
+      setLoading(false);
+    } else {
+      setCalculations(null);
+    }
+  }, [mrp, taxRate, discountRate]);
+
+  return { calculations, loading };
 };
 
-export const getStockStatus = (quantity) => {
-  if (quantity === 0) return { status: 'out_of_stock', label: 'Out of Stock', color: 'red' };
-  if (quantity <= 10) return { status: 'low_stock', label: 'Low Stock', color: 'yellow' };
-  return { status: 'in_stock', label: 'In Stock', color: 'green' };
-};
+export default ProductAPI;
