@@ -733,7 +733,7 @@ const ProductFormModal = ({ isOpen, onClose, product, onSave }) => {
                           <label className="pm-label">Image</label>
                           {variant.imagePreview ? (
                             <div className="pm-image-preview-wrapper">
-                              <img src={variant.image} alt="Variant" className="pm-image-preview" />
+                          <img src={variant.imagePreview} alt="Variant" className="pm-image-preview" />
                               <button onClick={() => removeVariantImage(index)} className="pm-btn-icon pm-btn-danger" title="Remove Image"><Trash2 className="pm-icon-sm" /></button>
                             </div>
                           ) : (
@@ -1162,53 +1162,66 @@ const ProductManagement = () => {
     const base = axiosInstance?.defaults?.baseURL || window.location.origin;
     return `${base.replace(/\/+$/, '')}/${String(u).replace(/^\/+/, '')}`;
   };
-
-  const attachMrpRange = async (list) => {
-    return Promise.all(
-      (list || []).map(async (p) => {
-        try {
-          const resp = await ProductVariantService.getAll({ product: p.id, page_size: 100 });
-          const variants = Array.isArray(resp?.results) ? resp.results : (Array.isArray(resp) ? resp : []);
-          const mrps = variants.map(v => Number(v?.mrp)).filter(Number.isFinite);
-
-          // pick image from primary_image, image, images[0], or all_images[0]
-          const withAnyImage = variants.find(v =>
-            v?.primary_image || v?.image ||
-            (Array.isArray(v?.images) && v.images.length) ||
-            (Array.isArray(v?.all_images) && v.all_images.length)
-          );
-
-          let thumbnail_url = null;
-          if (withAnyImage) {
-            thumbnail_url =
-              withAnyImage.primary_image ||
-              withAnyImage.image ||
-              withAnyImage.images?.[0]?.image_url || withAnyImage.images?.[0]?.url ||
-              withAnyImage.all_images?.[0]?.image_url || withAnyImage.all_images?.[0]?.url ||
-              null;
-          }
-
-          // normalize to absolute URL and cache-bust
-          if (thumbnail_url) {
-            thumbnail_url = toAbsoluteUrl(thumbnail_url);
-            thumbnail_url = `${thumbnail_url}${thumbnail_url.includes('?') ? '&' : '?'}t=${Date.now()}`;
-          }
-
-          const price_range = mrps.length
-            ? (Math.min(...mrps) === Math.max(...mrps)
-                ? `₹${Math.min(...mrps).toFixed(2)}`
-                : `₹${Math.min(...mrps).toFixed(2)} - ₹${Math.max(...mrps).toFixed(2)}`)
-            : (p.price_range ?? null);
-
-          return { ...p, price_range, thumbnail_url };
-        } catch (e) {
-          console.warn('MRP/image fetch failed for product', p.id, e);
-          return { ...p, price_range: p.price_range ?? null, thumbnail_url: p.thumbnail_url ?? null };
+const attachMrpRange = async (list) => {
+  return Promise.all(
+    (list || []).map(async (p) => {
+      try {
+        // Use ProductAPI.getVariants instead of ProductVariantService.getAll
+        const resp = await ProductAPI.getVariants({ product: p.id, page_size: 100 });
+        const variants = Array.isArray(resp?.results) ? resp.results : (Array.isArray(resp) ? resp : []);
+        
+        // DEBUG: Log what we get from API
+        console.log('Product:', p.id, 'Variants:', variants);
+        if (variants.length > 0) {
+          console.log('First variant structure:', variants[0]);
+          console.log('Image fields:', {
+            image: variants[0].image,
+            image_url: variants[0].image_url, 
+            primary_image: variants[0].primary_image,
+            images: variants[0].images,
+            all_images: variants[0].all_images
+          });
         }
-      })
-    );
-  };
+        
+        const mrps = variants.map(v => Number(v?.mrp)).filter(Number.isFinite);
 
+        // Look for any variant with an image
+        let thumbnail_url = null;
+        for (const variant of variants) {
+          if (variant.image_url) {
+            thumbnail_url = variant.image_url;
+            console.log(`Found image_url for variant ${variant.id}:`, thumbnail_url);
+            break;
+          } else if (variant.image) {
+            thumbnail_url = variant.image;
+            console.log(`Found image for variant ${variant.id}:`, thumbnail_url);
+            break;
+          }
+        }
+
+        console.log(`Product ${p.id} selected thumbnail:`, thumbnail_url);
+
+        // normalize to absolute URL and cache-bust
+        if (thumbnail_url) {
+          thumbnail_url = toAbsoluteUrl(thumbnail_url);
+          thumbnail_url = `${thumbnail_url}${thumbnail_url.includes('?') ? '&' : '?'}t=${Date.now()}`;
+          console.log('Final thumbnail_url:', thumbnail_url);
+        }
+
+        const price_range = mrps.length
+          ? (Math.min(...mrps) === Math.max(...mrps)
+              ? `₹${Math.min(...mrps).toFixed(2)}`
+              : `₹${Math.min(...mrps).toFixed(2)} - ₹${Math.max(...mrps).toFixed(2)}`)
+          : (p.price_range ?? null);
+
+        return { ...p, price_range, thumbnail_url };
+      } catch (e) {
+        console.error('Error fetching variants for product', p.id, e);
+        return { ...p, price_range: null, thumbnail_url: null };
+      }
+    })
+  );
+};
   const loadData = async () => {
     try {
       setLoading(true);

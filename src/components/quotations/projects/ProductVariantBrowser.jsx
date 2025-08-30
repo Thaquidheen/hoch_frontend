@@ -29,6 +29,8 @@ const ProductVariantBrowser = ({ onSelect, selectedVariant, isOpen, onClose }) =
   });
   const [viewMode, setViewMode] = useState('grid');
 
+
+
   // Use the hook to get brands and categories
   const {
     brands,
@@ -37,34 +39,26 @@ const ProductVariantBrowser = ({ onSelect, selectedVariant, isOpen, onClose }) =
   } = useProjectAccessories(null); // No projectId needed for reference data
 
   // Fetch variants when filters change
-  useEffect(() => {
-    if (isOpen) {
-      fetchVariants();
-    }
-  }, [filters, isOpen]);
+
 
 const fetchVariants = async () => {
   setLoading(true);
   setError(null);
   
   try {
-    // FIXED: Build filter parameters using actual filter values
     const filterParams = {};
     
-    // Use the selected category or default to 'ACCESSORIES' if none selected
     if (filters.category) {
       filterParams.category = filters.category;
     } else {
-      filterParams.category = 'ACCESSORIES'; // Default fallback
+      filterParams.category = 'ACCESSORIES';
     }
     
     if (filters.search) filterParams.search = filters.search;
     if (filters.brand) filterParams.brand = filters.brand;
 
     console.log('Fetching variants with params:', filterParams);
-    console.log('Current filters state:', filters);
 
-    // Use the hook's method or direct API call
     const response = await getAvailableProducts(filterParams);
     
     if (response.success) {
@@ -72,8 +66,21 @@ const fetchVariants = async () => {
       const variantsArray = data.results || data || [];
       const processedVariants = Array.isArray(variantsArray) ? variantsArray : [];
       
-      console.log('Variants fetched:', processedVariants.length);
-      console.log('Category used in API call:', filterParams.category);
+      // DEBUG: Log the full API response to see the structure
+      console.log('Full API Response:', data);
+      console.log('Variants received:', processedVariants.length);
+      
+      // DEBUG: Log the first few variants to see their image fields
+      if (processedVariants.length > 0) {
+        console.log('First variant full structure:', processedVariants[0]);
+        console.log('Image fields in first variant:', {
+          image: processedVariants[0].image,
+          image_url: processedVariants[0].image_url,
+          accessory_image_url: processedVariants[0].accessory_image_url,
+          product_variant_detail: processedVariants[0].product_variant_detail
+        });
+      }
+      
       setVariants(processedVariants);
     } else {
       throw new Error(response.error || 'Failed to fetch products');
@@ -90,6 +97,11 @@ const fetchVariants = async () => {
     setLoading(false);
   }
 };
+  useEffect(() => {
+    if (isOpen) {
+      fetchVariants();
+    }
+  }, [filters, isOpen]);
 
   // Mock data for development/testing
   const getMockVariants = () => {
@@ -225,8 +237,33 @@ const fetchVariants = async () => {
       return searchMatch && brandMatch;
     });
   }, [variants, filters]);
+const ProductCard = ({ variant, isSelected }) => {
+  // Enhanced debugging for image fields
+  console.log(`Variant ${variant.id} image debug:`, {
+    id: variant.id,
+    material_code: variant.material_code,
+    // Check all possible image field locations
+    direct_image: variant.image,
+    image_url: variant.image_url,
+    accessory_image_url: variant.accessory_image_url,
+    product_variant_detail_image: variant.product_variant_detail?.image_url,
+    product_variant_detail_full: variant.product_variant_detail,
+    // Check if there's an image field we're missing
+    all_keys: Object.keys(variant)
+  });
 
-  const ProductCard = ({ variant, isSelected }) => (
+  // Try even more possible image field names
+  const imageUrl = variant.image_url || 
+                   variant.accessory_image_url || 
+                   variant.product_variant_detail?.image_url ||
+                   variant.image ||
+                   variant.primary_image ||
+                   null;
+
+  // Log the final image URL decision
+  console.log(`Final image URL for variant ${variant.id}:`, imageUrl);
+
+  return (
     <div 
       className={`productvariantbrowser-card ${isSelected ? 'selected' : ''} ${viewMode}`}
       onClick={() => handleVariantSelect(variant)}
@@ -240,17 +277,35 @@ const fetchVariants = async () => {
       )}
 
       <div className="productvariantbrowser-image">
-        {variant.image_url ? (
+        {imageUrl ? (
           <img 
-            src={variant.accessory_image_url || variant.image_url} 
-            alt={variant.product?.name} 
+            src={imageUrl} 
+            alt={variant.product?.name || variant.material_code} 
             onError={(e) => {
+              console.error('Image failed to load for variant', variant.id, ':', imageUrl);
               e.target.style.display = 'none';
               e.target.nextSibling.style.display = 'flex';
             }}
+            onLoad={() => {
+              console.log('Image loaded successfully for variant', variant.id, ':', imageUrl);
+            }}
           />
-        ) : null}
-        <div className="productvariantbrowser-no-image" style={{ display: variant.image_url ? 'none' : 'flex' }}>
+        ) : (
+          // Show debug info when no image is found
+          <div className="productvariantbrowser-debug-no-image" style={{ 
+            position: 'absolute', 
+            top: '5px', 
+            left: '5px', 
+            background: 'rgba(255,0,0,0.8)', 
+            color: 'white', 
+            padding: '2px 4px', 
+            fontSize: '10px',
+            zIndex: 10 
+          }}>
+            No Image: ID {variant.id}
+          </div>
+        )}
+        <div className="productvariantbrowser-no-image" style={{ display: imageUrl ? 'none' : 'flex' }}>
           <ImageIcon size={24} />
         </div>
 
@@ -262,6 +317,7 @@ const fetchVariants = async () => {
         </div>
       </div>
 
+      {/* Rest of the component remains the same */}
       <div className="productvariantbrowser-info">
         <div className="productvariantbrowser-header">
           <h4 className="productvariantbrowser-name">{variant.product?.name}</h4>
@@ -303,28 +359,19 @@ const fetchVariants = async () => {
 
         <div className="productvariantbrowser-stock-status">
           {variant.stock_quantity > 0 ? (
-            <span className="productvariantbrowser-in-stock">✓ In Stock ({variant.stock_quantity})</span>
+            <span className="productvariantbrowser-in-stock">
+              ✓ {variant.stock_quantity} in stock
+            </span>
           ) : (
-            <span className="productvariantbrowser-out-of-stock">⚠ Out of Stock</span>
+            <span className="productvariantbrowser-out-of-stock">
+              ✗ Out of stock
+            </span>
           )}
         </div>
-
-        {variant.rating && (
-          <div className="productvariantbrowser-rating">
-            {[...Array(5)].map((_, i) => (
-              <Star 
-                key={i} 
-                size={12} 
-                fill={i < variant.rating ? '#fbbf24' : 'none'}
-                stroke={i < variant.rating ? '#fbbf24' : '#d1d5db'}
-              />
-            ))}
-            <span className="productvariantbrowser-rating-text">({variant.rating})</span>
-          </div>
-        )}
       </div>
     </div>
   );
+};
 
   const LoadingSkeleton = () => (
     <div className="productvariantbrowser-loading-skeleton">
@@ -401,8 +448,8 @@ const fetchVariants = async () => {
                 onChange={(e) => handleFilterChange('category', e.target.value)}
                 className="productvariantbrowser-filter-select"
               >
-                <option value="">All Categories</option>
-                <option value="ACCESSORIES">Accessories</option>
+                <option value="">Select</option>
+         
                 {categories.map(category => (
                   <option key={category.id} value={category.name}>
                     {category.name}

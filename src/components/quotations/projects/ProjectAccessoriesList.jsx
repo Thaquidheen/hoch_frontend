@@ -110,16 +110,44 @@ const ProjectAccessoriesList = ({ project, lineItems, onAccessoryChange }) => {
     }).format(amount || 0);
   };
 
-  const AccessoryCard = ({ accessory }) => (
+const AccessoryCard = ({ accessory }) => {
+  // Debug: Log the accessory data to see what image fields are available
+  console.log('Accessory data:', {
+    id: accessory.id,
+    accessory_image: accessory.accessory_image,
+    accessory_image_url: accessory.accessory_image_url,
+    product_variant_detail: accessory.product_variant_detail
+  });
+
+  // Try multiple possible image field names
+  const imageUrl = accessory.accessory_image_url || 
+                   accessory.accessory_image || 
+                   accessory.product_variant_detail?.image_url ||
+                   null;
+
+  return (
     <div className="projectaccessories-card">
       <div className="projectaccessories-image">
-        {accessory.accessory_image ? (
-          <img src={accessory.accessory_image} alt={accessory.accessory_name} />
-        ) : (
-          <div className="projectaccessories-no-image">
-            <ImageIcon size={20} />
-          </div>
-        )}
+        {imageUrl ? (
+          <img 
+            src={imageUrl} 
+            alt={accessory.accessory_name}
+            onError={(e) => {
+              console.error('Accessory image failed to load:', imageUrl);
+              e.target.style.display = 'none';
+              e.target.nextSibling.style.display = 'flex';
+            }}
+            onLoad={() => {
+              console.log('Accessory image loaded successfully:', imageUrl);
+            }}
+          />
+        ) : null}
+        <div 
+          className="projectaccessories-no-image"
+          style={{ display: imageUrl ? 'none' : 'flex' }}
+        >
+          <ImageIcon size={20} />
+        </div>
       </div>
       
       <div className="projectaccessories-details">
@@ -168,6 +196,7 @@ const ProjectAccessoriesList = ({ project, lineItems, onAccessoryChange }) => {
       </div>
     </div>
   );
+};
 
   const LineItemSection = ({ lineItem }) => {
     const lineItemAccessories = accessoriesByLineItem[lineItem.id] || [];
