@@ -733,7 +733,7 @@ const ProductFormModal = ({ isOpen, onClose, product, onSave }) => {
                           <label className="pm-label">Image</label>
                           {variant.imagePreview ? (
                             <div className="pm-image-preview-wrapper">
-                              <img src={variant.imagePreview} alt="Variant" className="pm-image-preview" />
+                              <img src={variant.image} alt="Variant" className="pm-image-preview" />
                               <button onClick={() => removeVariantImage(index)} className="pm-btn-icon pm-btn-danger" title="Remove Image"><Trash2 className="pm-icon-sm" /></button>
                             </div>
                           ) : (
@@ -867,7 +867,7 @@ const ProductDetailModal = ({ isOpen, onClose, product }) => {
       const variantImages =
         variant.all_images ||
         variant.images ||
-        (variant.primary_image
+        (variant.image
           ? [{ image_url: variant.primary_image, alt_text: variant.material_code, is_primary: true }]
           : (variant.image
               ? [{ image_url: variant.image, alt_text: variant.material_code, is_primary: true }]

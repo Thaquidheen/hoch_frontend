@@ -15,6 +15,7 @@ import {
   Layers,
   Lightbulb,
   RefreshCw,
+  ImageIcon, // Added for plan images
 } from 'lucide-react';
 
 import LineItemsList from '../../components/quotations/projects/LineItemsList';
@@ -22,10 +23,15 @@ import LineItemForm from '../../components/quotations/projects/LineItemForm';
 import ProjectMultiLightingCalculator from '../../components/masters/lighting-rules/ProjectMultiLightingCalculator';
 import ProjectLightingItemsList from '../../components/masters/lighting-rules/ProjectLightingItemsList';
 import LightingItemForm from '../../components/masters/lighting-rules/LightingItemForm';
+import ProjectAccessoriesList from '../../components/quotations/projects/ProjectAccessoriesList';
 import useProjects from '../../hooks/quotations/useProjects';
 import useLineItems from '../../hooks/quotations/useLineItems';
 import useLightingRules from '../../hooks/masters/useLightingRules';
 import { enhancedLightingApi } from '../../service/masters/lightingRulesApi';
+import PlanImagesManager from '../../components/quotations/projects/PlanImagesManager';
+import { usePlanImages } from '../../hooks/masters/usePlanImages';
+import api from '../../service/api';
+
 import './ProjectDetailPage.css';
 
 const ProjectDetailPage = () => {
@@ -69,6 +75,19 @@ const ProjectDetailPage = () => {
     getLineItemsStats,
     exportLineItems,
   } = useLineItems(projectId);
+
+  const {
+    imageGroups,
+    loading: planImagesLoading,
+    error: planImagesError,
+    createGroup,
+    updateGroup,
+    deleteGroup,
+    bulkUploadImages,
+    updateImage,
+    deleteImage,
+    getTotalImageCount
+  } = usePlanImages(projectId);
 
   const { lightingRules } = useLightingRules();
 
@@ -116,6 +135,22 @@ const ProjectDetailPage = () => {
       grand_total_with_lighting: (baseTotals.grand_total || 0) + lightingCost
     };
   }, [project?.totals, lightingConfig]);
+
+  // Project statistics with plan images
+  const projectStats = useMemo(() => ({
+    totalLineItems: lineItems.length,
+    totalLightingItems: lightingItems.length,
+    totalPlanImages: getTotalImageCount(),
+    baseCabinetCount: lineItems
+      .filter(item => item.cabinet_type_detail?.category?.name === 'BASE')
+      .reduce((sum, item) => sum + item.qty, 0),
+    wallCabinetCount: lineItems
+      .filter(item => item.cabinet_type_detail?.category?.name === 'WALL')
+      .reduce((sum, item) => sum + item.qty, 0),
+    tallCabinetCount: lineItems
+      .filter(item => item.cabinet_type_detail?.category?.name === 'TALL')
+      .reduce((sum, item) => sum + item.qty, 0)
+  }), [lineItems, lightingItems, getTotalImageCount]);
 
   // Project Fetch Logic
   useEffect(() => {
@@ -255,34 +290,28 @@ const ProjectDetailPage = () => {
   };
 
   // New handlers for multiple lighting items
-const handleAutoCreateLightingItems = async () => {
-  try {
-    setLoading(true);
-    
-    // This now properly handles the two-step process:
-    // 1. Get/create lighting configuration
-    // 2. Call auto_create_items action on that configuration
-    const response = await enhancedLightingApi.autoCreateLightingItems(projectId);
-    
-    // Refresh project data and lighting items
-    const projectData = await getProjectById(projectId);
-    if (projectData.success) setProject(projectData.data);
-    
-    // Fetch updated lighting items
-    const updatedItems = await enhancedLightingApi.getLightingItems(projectId);
-    setLightingItems(updatedItems);
-    
-    // Show success message with count from response
-    const createdCount = response.created_items?.length || response.created_items || 0;
-    showNotification('success', `${createdCount} lighting items created successfully`);
-    
-  } catch (error) {
-    console.error('Auto-create lighting items error:', error);
-    showNotification('error', error.message || 'Failed to create lighting items');
-  } finally {
-    setLoading(false);
-  }
-};
+  const handleAutoCreateLightingItems = async () => {
+    try {
+      setLoading(true);
+      
+      const response = await enhancedLightingApi.autoCreateLightingItems(projectId);
+      
+      const projectData = await getProjectById(projectId);
+      if (projectData.success) setProject(projectData.data);
+      
+      const updatedItems = await enhancedLightingApi.getLightingItems(projectId);
+      setLightingItems(updatedItems);
+      
+      const createdCount = response.created_items?.length || response.created_items || 0;
+      showNotification('success', `${createdCount} lighting items created successfully`);
+      
+    } catch (error) {
+      console.error('Auto-create lighting items error:', error);
+      showNotification('error', error.message || 'Failed to create lighting items');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSaveLightingItem = async (itemData) => {
     try {
@@ -292,11 +321,9 @@ const handleAutoCreateLightingItems = async () => {
         ? await enhancedLightingApi.updateLightingItem(itemData.id, itemData)
         : await enhancedLightingApi.createLightingItem(itemData);
       
-      // Refresh project data
       const projectData = await getProjectById(projectId);
       if (projectData.success) setProject(projectData.data);
       
-      // Fetch updated lighting items
       const updatedItems = await enhancedLightingApi.getLightingItems(projectId);
       setLightingItems(updatedItems);
       
@@ -316,11 +343,9 @@ const handleAutoCreateLightingItems = async () => {
       setLoading(true);
       await enhancedLightingApi.toggleLightingItem(itemId, isActive);
       
-      // Refresh project data
       const projectData = await getProjectById(projectId);
       if (projectData.success) setProject(projectData.data);
       
-      // Fetch updated lighting items
       const updatedItems = await enhancedLightingApi.getLightingItems(projectId);
       setLightingItems(updatedItems);
       
@@ -341,11 +366,9 @@ const handleAutoCreateLightingItems = async () => {
       setLoading(true);
       await enhancedLightingApi.deleteLightingItem(itemId);
       
-      // Refresh project data
       const projectData = await getProjectById(projectId);
       if (projectData.success) setProject(projectData.data);
       
-      // Fetch updated lighting items
       const updatedItems = await enhancedLightingApi.getLightingItems(projectId);
       setLightingItems(updatedItems);
       
@@ -357,31 +380,45 @@ const handleAutoCreateLightingItems = async () => {
     }
   };
 
+  const handleAccessoryChange = async () => {
+    try {
+      await recalculateProjectTotals(projectId);
+      const refreshedProject = await getProjectById(projectId);
+      if (refreshedProject.success) {
+        setProject(refreshedProject.data);
+      }
+    } catch (error) {
+      console.error('Error refreshing project after accessory change:', error);
+    }
+  };
+
   const handleUpdateLightingTotals = async () => {
-  try {
-    setLoading(true);
-    
-    // First get the lighting configuration to call recalculate_totals action
-    const config = await enhancedLightingApi.getLightingConfiguration(projectId);
-    
-    // Call the recalculate_totals action on the configuration
-    await api.post(`api/pricing/lighting-configurations/${config.id}/recalculate_totals/`);
-    
-    // Also recalculate project totals to include lighting
-    await recalculateProjectTotals(projectId);
-    
-    // Refresh project data
-    const projectData = await getProjectById(projectId);
-    if (projectData.success) setProject(projectData.data);
-    
-    showNotification('success', 'Lighting totals updated successfully');
-  } catch (error) {
-    console.error('Update lighting totals error:', error);
-    showNotification('error', error.message || 'Failed to update lighting totals');
-  } finally {
-    setLoading(false);
-  }
-};
+    try {
+      setLoading(true);
+      
+      const config = await enhancedLightingApi.getLightingConfiguration(projectId);
+      
+      await api.post(`/api/pricing/lighting-configurations/${config.id}/recalculate_totals/`);
+      
+      await recalculateProjectTotals(projectId);
+      
+      const projectData = await getProjectById(projectId);
+      if (projectData.success) setProject(projectData.data);
+      
+      showNotification('success', 'Lighting totals updated successfully');
+    } catch (error) {
+      console.error('Update lighting totals error:', error);
+      showNotification('error', error.message || 'Failed to update lighting totals');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Plan Images handler
+  const handlePlanImagesUpdate = () => {
+    showNotification('success', 'Plan images updated successfully');
+  };
+
   // Helper Functions
   const formatCurrency = (amount) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(amount || 0);
 
@@ -444,23 +481,66 @@ const handleAutoCreateLightingItems = async () => {
           <div className="projectdetail-summary-cards">
             {/* Project Settings Card */}
             <div className="projectdetail-summary-card">
-              <div className="projectdetail-card-header"><Settings className="projectdetail-card-icon" /><h3 className="projectdetail-card-title">Project Settings</h3></div>
+              <div className="projectdetail-card-header">
+                <Settings className="projectdetail-card-icon" />
+                <h3 className="projectdetail-card-title">Project Settings</h3>
+              </div>
               <div className="projectdetail-card-content">
-                <div className="projectdetail-setting-item"><span className="projectdetail-setting-label">Budget Tier:</span><span className={`projectdetail-setting-value projectdetail-tier-${project.budget_tier.toLowerCase()}`}>{project.budget_tier}</span></div>
-                <div className="projectdetail-setting-item"><span className="projectdetail-setting-label">Margin:</span><span className="projectdetail-setting-value">{project.margin_pct}%</span></div>
-                <div className="projectdetail-setting-item"><span className="projectdetail-setting-label">GST:</span><span className="projectdetail-setting-value">{project.gst_pct}%</span></div>
-                <div className="projectdetail-setting-item"><span className="projectdetail-setting-label">Scopes:</span><span className="projectdetail-setting-value">{project.scopes?.open && 'Open'}{project.scopes?.open && project.scopes?.working && ' + '}{project.scopes?.working && 'Working'}</span></div>
+                <div className="projectdetail-setting-item">
+                  <span className="projectdetail-setting-label">Budget Tier:</span>
+                  <span className={`projectdetail-setting-value projectdetail-tier-${project.budget_tier.toLowerCase()}`}>
+                    {project.budget_tier}
+                  </span>
+                </div>
+                <div className="projectdetail-setting-item">
+                  <span className="projectdetail-setting-label">Margin:</span>
+                  <span className="projectdetail-setting-value">{project.margin_pct}%</span>
+                </div>
+                <div className="projectdetail-setting-item">
+                  <span className="projectdetail-setting-label">GST:</span>
+                  <span className="projectdetail-setting-value">{project.gst_pct}%</span>
+                </div>
+                <div className="projectdetail-setting-item">
+                  <span className="projectdetail-setting-label">Scopes:</span>
+                  <span className="projectdetail-setting-value">
+                    {project.scopes?.open && 'Open'}{project.scopes?.open && project.scopes?.working && ' + '}{project.scopes?.working && 'Working'}
+                  </span>
+                </div>
               </div>
             </div>
             
             {/* Line Items Stats Card */}
             <div className="projectdetail-summary-card">
-              <div className="projectdetail-card-header"><Package className="projectdetail-card-icon" /><h3 className="projectdetail-card-title">Cabinet Analysis</h3></div>
+              <div className="projectdetail-card-header">
+                <Package className="projectdetail-card-icon" />
+                <h3 className="projectdetail-card-title">Cabinet Analysis</h3>
+              </div>
               <div className="projectdetail-card-content">
-                <div className="projectdetail-setting-item"><span className="projectdetail-setting-label">Total Items:</span><span className="projectdetail-setting-value">{lineItemsStats.total}</span></div>
-                <div className="projectdetail-setting-item"><span className="projectdetail-setting-label">Wall Cabinets:</span><span className="projectdetail-setting-value">{lineItemsStats.wallCabinetCount} ({(lineItemsStats.totalWallWidth/1000).toFixed(1)}m)</span></div>
-                <div className="projectdetail-setting-item"><span className="projectdetail-setting-label">Base Cabinets:</span><span className="projectdetail-setting-value">{lineItems.filter(i => i.cabinet_type_detail?.category?.name === 'BASE').reduce((s, i) => s + i.qty, 0)} ({(lineItemsStats.totalBaseWidth/1000).toFixed(1)}m)</span></div>
-                <div className="projectdetail-setting-item"><span className="projectdetail-setting-label">Tall Cabinets:</span><span className="projectdetail-setting-value">{lineItemsStats.tallCabinetCount}</span></div>
+                <div className="projectdetail-setting-item">
+                  <span className="projectdetail-setting-label">Total Items:</span>
+                  <span className="projectdetail-setting-value">{lineItemsStats.total}</span>
+                </div>
+                <div className="projectdetail-setting-item">
+                  <span className="projectdetail-setting-label">Wall Cabinets:</span>
+                  <span className="projectdetail-setting-value">
+                    {lineItemsStats.wallCabinetCount} ({(lineItemsStats.totalWallWidth/1000).toFixed(1)}m)
+                  </span>
+                </div>
+                <div className="projectdetail-setting-item">
+                  <span className="projectdetail-setting-label">Base Cabinets:</span>
+                  <span className="projectdetail-setting-value">
+                    {lineItems.filter(i => i.cabinet_type_detail?.category?.name === 'BASE').reduce((s, i) => s + i.qty, 0)} ({(lineItemsStats.totalBaseWidth/1000).toFixed(1)}m)
+                  </span>
+                </div>
+                <div className="projectdetail-setting-item">
+                  <span className="projectdetail-setting-label">Tall Cabinets:</span>
+                  <span className="projectdetail-setting-value">{lineItemsStats.tallCabinetCount}</span>
+                </div>
+                {/* NEW: Plan Images count */}
+                <div className="projectdetail-setting-item">
+                  <span className="projectdetail-setting-label">Plan Images:</span>
+                  <span className="projectdetail-setting-value">{projectStats.totalPlanImages}</span>
+                </div>
               </div>
             </div>
             
@@ -518,18 +598,34 @@ const handleAutoCreateLightingItems = async () => {
 
       <div className="projectdetail-project-content">
         <div className="projectdetail-content-tabs">
-          <button className={`projectdetail-tab-button ${activeTab === 'line-items' ? 'active' : ''}`} onClick={() => setActiveTab('line-items')}>
+          <button 
+            className={`projectdetail-tab-button ${activeTab === 'line-items' ? 'active' : ''}`} 
+            onClick={() => setActiveTab('line-items')}
+          >
             <Package className="projectdetail-tab-icon" /> Line Items ({lineItems.length})
           </button>
-          <button className={`projectdetail-tab-button ${activeTab === 'lighting' ? 'active' : ''}`} onClick={() => setActiveTab('lighting')}>
+          <button 
+            className={`projectdetail-tab-button ${activeTab === 'lighting' ? 'active' : ''}`} 
+            onClick={() => setActiveTab('lighting')}
+          >
             <Lightbulb className="projectdetail-tab-icon" /> Multi-Category Lighting
             {lightingItems.length > 0 && <span className="tab-count">{lightingItems.length}</span>}
           </button>
-          <button className={`projectdetail-tab-button ${activeTab === 'accessories' ? 'active' : ''}`} onClick={() => setActiveTab('accessories')}>
-            <Layers className="projectdetail-tab-icon" /> Accessories
+          <button 
+            className={`projectdetail-tab-button ${activeTab === 'accessories' ? 'active' : ''}`} 
+            onClick={() => setActiveTab('accessories')}
+          >
+            <Settings className="projectdetail-tab-icon" /> Accessories
           </button>
-          <button className={`projectdetail-tab-button ${activeTab === 'plans' ? 'active' : ''}`} onClick={() => setActiveTab('plans')}>
-            <FileText className="projectdetail-tab-icon" /> Plan Images
+          {/* CORRECTED: Plan Images tab */}
+          <button 
+            className={`projectdetail-tab-button ${activeTab === 'plans' ? 'active' : ''}`} 
+            onClick={() => setActiveTab('plans')}
+          >
+            <ImageIcon className="projectdetail-tab-icon" /> Plan Images
+            {projectStats.totalPlanImages > 0 && (
+              <span className="tab-count">{projectStats.totalPlanImages}</span>
+            )}
           </button>
         </div>
         
@@ -549,7 +645,6 @@ const handleAutoCreateLightingItems = async () => {
             />
           )}
           
-          {/* Enhanced Multi-Category Lighting Tab with multiple lighting items */}
           {activeTab === 'lighting' && (
             <div className="projectdetail-lighting-tab">
               <div className="lighting-header">
@@ -585,7 +680,7 @@ const handleAutoCreateLightingItems = async () => {
                 cabinetTypes={cabinetTypes}
                 materials={materials}
                 loading={loading}
-                 onSaveItem={handleSaveLightingItem}
+                onSaveItem={handleSaveLightingItem}
                 onAddItem={() => { setEditingLightingItem(null); setShowLightingItemForm(true); }}
                 onEditItem={(item) => { setEditingLightingItem(item); setShowLightingItemForm(true); }}
                 onDeleteItem={handleDeleteLightingItem}
@@ -611,16 +706,28 @@ const handleAutoCreateLightingItems = async () => {
           )}
           
           {activeTab === 'accessories' && (
-            <div className="projectdetail-coming-soon">
-              <Layers className="projectdetail-coming-soon-icon" />
-              <h3>Accessories Coming Soon</h3>
+            <div className="tab-content">
+              <ProjectAccessoriesList 
+                project={project}
+                lineItems={lineItems}
+                onAccessoryChange={handleAccessoryChange}
+              />
             </div>
           )}
           
+          {/* CORRECTED: Plan Images tab implementation */}
           {activeTab === 'plans' && (
-            <div className="projectdetail-coming-soon">
-              <FileText className="projectdetail-coming-soon-icon" />
-              <h3>Plan Images Coming Soon</h3>
+            <div className="plan-images-section">
+              {planImagesError && (
+                <div className="error-message">
+                  <AlertTriangle className="error-icon" />
+                  <span>Error loading plan images: {planImagesError}</span>
+                </div>
+              )}
+              <PlanImagesManager
+                projectId={projectId}
+                onUpdate={handlePlanImagesUpdate}
+              />
             </div>
           )}
         </div>
@@ -658,10 +765,15 @@ const handleAutoCreateLightingItems = async () => {
         loading={loading}
       />
 
+      {/* Notification Toast */}
       {notification && (
         <div className={`projectdetail-notification-toast projectdetail-notification-${notification.type}`}>
           <div className="projectdetail-notification-content">
-            {notification.type === 'success' ? <CheckCircle className="projectdetail-notification-icon" /> : <AlertTriangle className="projectdetail-notification-icon" />}
+            {notification.type === 'success' ? (
+              <CheckCircle className="projectdetail-notification-icon" />
+            ) : (
+              <AlertTriangle className="projectdetail-notification-icon" />
+            )}
             <span>{notification.message}</span>
           </div>
         </div>

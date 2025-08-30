@@ -761,3 +761,179 @@
   color: #fca5a5;
 }
 
+.custom-kitchen-type {
+  position: relative;
+  border: 1px solid #4b5563;
+  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+}
+
+.custom-kitchen-type .scope-title {
+  color: #22d3ee;
+}
+
+.remove-custom-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid #ef4444;
+  color: #ef4444;
+  border-radius: 4px;
+  padding: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.remove-custom-btn:hover {
+  background: rgba(239, 68, 68, 0.2);
+  transform: scale(1.1);
+}
+
+.remove-icon {
+  width: 12px;
+  height: 12px;
+}
+
+.custom-kitchen-section {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #374151;
+}
+
+.add-custom-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: rgba(34, 211, 238, 0.1);
+  border: 1px dashed #22d3ee;
+  color: #22d3ee;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+  justify-content: center;
+  font-size: 0.875rem;
+}
+
+.add-custom-btn:hover {
+  background: rgba(34, 211, 238, 0.2);
+  border-color: #0891b2;
+  transform: translateY(-1px);
+}
+
+.add-icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.custom-input-container {
+  background: #1f2937;
+  border: 1px solid #374151;
+  border-radius: 0.5rem;
+  padding: 1rem;
+}
+
+.custom-input-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.custom-kitchen-input {
+  flex: 1;
+  background: #000000;
+  border: 1px solid #4b5563;
+  color: #ffffff;
+  padding: 0.75rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+}
+
+.custom-kitchen-input:focus {
+  outline: none;
+  border-color: #22d3ee;
+  box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.1);
+}
+
+.custom-kitchen-input::placeholder {
+  color: #9ca3af;
+}
+
+.custom-input-actions {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.confirm-custom-btn,
+.cancel-custom-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  border-radius: 0.375rem;
+  border: 1px solid;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.confirm-custom-btn {
+  background: rgba(34, 197, 94, 0.1);
+  border-color: #22c55e;
+  color: #22c55e;
+}
+
+.confirm-custom-btn:hover:not(:disabled) {
+  background: rgba(34, 197, 94, 0.2);
+  transform: scale(1.1);
+}
+
+.confirm-custom-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.cancel-custom-btn {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: #ef4444;
+  color: #ef4444;
+}
+
+.cancel-custom-btn:hover {
+  background: rgba(239, 68, 68, 0.2);
+  transform: scale(1.1);
+}
+
+.action-icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.custom-input-hint {
+  font-size: 0.75rem;
+  color: #6b7280;
+  font-style: italic;
+  margin-top: 0.25rem;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .custom-input-row {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .custom-kitchen-input {
+    width: 100%;
+  }
+  
+  .custom-input-actions {
+    width: 100%;
+    justify-content: center;
+  }
+}

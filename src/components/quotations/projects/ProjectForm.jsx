@@ -10,7 +10,9 @@ import {
   Percent,
   IndianRupee,
   Settings,
-  FileText
+  FileText,
+  Plus,
+  Check
 } from 'lucide-react';
 import './ProjectForm.css';
 
@@ -39,6 +41,9 @@ const ProjectForm = ({
   });
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [customKitchenTypes, setCustomKitchenTypes] = useState([]);
+const [showCustomInput, setShowCustomInput] = useState(false);
+const [customKitchenName, setCustomKitchenName] = useState('');
 
   // Initialize form data when project changes
   useEffect(() => {
@@ -114,13 +119,20 @@ const ProjectForm = ({
       newErrors.gst_pct = 'GST cannot exceed 50%';
     }
 
-    // Scopes validation
-    if (!formData.scopes.open && !formData.scopes.working) {
-      newErrors.scopes = 'At least one scope (Open Kitchen or Working Kitchen) must be selected';
-    }
+    
 
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    const hasAnyScope = formData.scopes.open || 
+                     formData.scopes.working || 
+                     Object.keys(formData.scopes).some(key => 
+                       key.startsWith('custom_') && formData.scopes[key]
+                     );
+  
+  if (!hasAnyScope) {
+    newErrors.scopes = 'At least one scope (Open Kitchen, Working Kitchen, or Custom Kitchen) must be selected';
+  }
+
+  setErrors(newErrors);
+  return Object.keys(newErrors).length === 0;
   };
 
   // Handle input changes
@@ -139,24 +151,43 @@ const ProjectForm = ({
     }
   };
 
-  // Handle scope changes
-  const handleScopeChange = (scopeName, checked) => {
-    setFormData(prev => ({
-      ...prev,
-      scopes: {
-        ...prev.scopes,
-        [scopeName]: checked
+  const getSelectedScopes = () => {
+  const scopes = [];
+  
+  if (formData.scopes.open) scopes.push('Open Kitchen');
+  if (formData.scopes.working) scopes.push('Working Kitchen');
+  
+  // Add custom kitchen types
+  Object.keys(formData.scopes).forEach(key => {
+    if (key.startsWith('custom_') && formData.scopes[key]) {
+      const index = parseInt(key.split('_')[1]);
+      if (customKitchenTypes[index]) {
+        scopes.push(customKitchenTypes[index].name);
       }
-    }));
-
-    // Clear scope error
-    if (errors.scopes) {
-      setErrors(prev => ({
-        ...prev,
-        scopes: ''
-      }));
     }
-  };
+  });
+  
+  return scopes.join(' + ');
+};
+
+  // Handle scope changes
+const handleScopeChange = (scopeName, checked) => {
+  setFormData(prev => ({
+    ...prev,
+    scopes: {
+      ...prev.scopes,
+      [scopeName]: checked
+    }
+  }));
+
+  // Clear scope error
+  if (errors.scopes) {
+    setErrors(prev => ({
+      ...prev,
+      scopes: ''
+    }));
+  }
+};
 
   // Handle form submission
   const handleSubmit = async (e) => {
@@ -222,6 +253,60 @@ const ProjectForm = ({
     setErrors({});
     onCancel();
   };
+
+
+const addCustomKitchenType = () => {
+  if (customKitchenName.trim()) {
+    const newCustomType = {
+      name: customKitchenName.trim(),
+      description: `Custom kitchen specifications for ${customKitchenName.trim()}`
+    };
+    
+    setCustomKitchenTypes(prev => [...prev, newCustomType]);
+    
+    // Enable the new custom type by default
+    const newIndex = customKitchenTypes.length;
+    handleScopeChange(`custom_${newIndex}`, true);
+    
+    // Reset input
+    setCustomKitchenName('');
+    setShowCustomInput(false);
+  }
+};
+
+const removeCustomKitchenType = (index) => {
+  // Remove from custom types array
+  setCustomKitchenTypes(prev => prev.filter((_, i) => i !== index));
+  
+  // Remove from form data scopes and reindex remaining custom types
+  setFormData(prev => {
+    const newScopes = { ...prev.scopes };
+    
+    // Remove the current custom type
+    delete newScopes[`custom_${index}`];
+    
+    // Reindex remaining custom types
+    const remainingCustomScopes = {};
+    Object.keys(newScopes).forEach(key => {
+      if (key.startsWith('custom_')) {
+        const currentIndex = parseInt(key.split('_')[1]);
+        if (currentIndex > index) {
+          remainingCustomScopes[`custom_${currentIndex - 1}`] = newScopes[key];
+        } else if (currentIndex < index) {
+          remainingCustomScopes[key] = newScopes[key];
+        }
+      } else {
+        remainingCustomScopes[key] = newScopes[key];
+      }
+    });
+    
+    return {
+      ...prev,
+      scopes: remainingCustomScopes
+    };
+  });
+};
+
 
   // Don't render if not open
   if (!isOpen) return null;
@@ -427,7 +512,7 @@ const ProjectForm = ({
             </div>
 
             {/* Project Scopes */}
-            <div className="form-section">
+            {/* <div className="form-section">
               <h3 className="section-title">
                 <Settings className="section-icon" />
                 Project Scopes
@@ -471,7 +556,134 @@ const ProjectForm = ({
                   {errors.scopes}
                 </div>
               )}
+            </div> */}
+            <div className="form-section">
+  <h3 className="section-title">
+    <Settings className="section-icon" />
+    Project Scopes
+  </h3>
+
+  <div className="scope-selection">
+    {/* Standard Open Kitchen */}
+    <label className="scope-checkbox-label">
+      <input
+        type="checkbox"
+        className="scope-checkbox"
+        checked={formData.scopes.open}
+        onChange={(e) => handleScopeChange('open', e.target.checked)}
+      />
+      <div className="scope-content">
+        <span className="scope-title">Open Kitchen</span>
+        <p className="scope-description">
+          Customer-facing quotation for open kitchen design with visible finishes
+        </p>
+      </div>
+    </label>
+
+    {/* Standard Working Kitchen */}
+    <label className="scope-checkbox-label">
+      <input
+        type="checkbox"
+        className="scope-checkbox"
+        checked={formData.scopes.working}
+        onChange={(e) => handleScopeChange('working', e.target.checked)}
+      />
+      <div className="scope-content">
+        <span className="scope-title">Working Kitchen</span>
+        <p className="scope-description">
+          Detailed technical specifications for working kitchen components
+        </p>
+      </div>
+    </label>
+
+    {/* Custom Kitchen Types */}
+    {customKitchenTypes.map((customType, index) => (
+      <label key={`custom-${index}`} className="scope-checkbox-label custom-kitchen-type">
+        <input
+          type="checkbox"
+          className="scope-checkbox"
+          checked={formData.scopes[`custom_${index}`] || false}
+          onChange={(e) => handleScopeChange(`custom_${index}`, e.target.checked)}
+        />
+        <div className="scope-content">
+          <span className="scope-title">{customType.name}</span>
+          <p className="scope-description">
+            Custom kitchen type: {customType.description || 'Custom specifications'}
+          </p>
+        </div>
+        <button
+          type="button"
+          className="remove-custom-btn"
+          onClick={() => removeCustomKitchenType(index)}
+          title="Remove custom kitchen type"
+        >
+          <X className="remove-icon" />
+        </button>
+      </label>
+    ))}
+
+    {/* Add Custom Kitchen Button */}
+    <div className="custom-kitchen-section">
+      {!showCustomInput ? (
+        <button
+          type="button"
+          className="add-custom-btn"
+          onClick={() => setShowCustomInput(true)}
+        >
+          <Plus className="add-icon" />
+          Add Custom Kitchen Type
+        </button>
+      ) : (
+        <div className="custom-input-container">
+          <div className="custom-input-row">
+            <input
+              type="text"
+              placeholder="Enter custom kitchen type name (e.g., 'Utility Kitchen', 'Pantry Kitchen')"
+              className="custom-kitchen-input"
+              value={customKitchenName}
+              onChange={(e) => setCustomKitchenName(e.target.value)}
+              onKeyPress={(e) => {
+                if (e.key === 'Enter') {
+                  addCustomKitchenType();
+                }
+              }}
+            />
+            <div className="custom-input-actions">
+              <button
+                type="button"
+                className="confirm-custom-btn"
+                onClick={addCustomKitchenType}
+                disabled={!customKitchenName.trim()}
+              >
+                <Check className="action-icon" />
+              </button>
+              <button
+                type="button"
+                className="cancel-custom-btn"
+                onClick={() => {
+                  setShowCustomInput(false);
+                  setCustomKitchenName('');
+                }}
+              >
+                <X className="action-icon" />
+              </button>
             </div>
+          </div>
+          <div className="custom-input-hint">
+            Examples: Utility Kitchen, Pantry Kitchen, Breakfast Kitchen, Bar Kitchen
+          </div>
+        </div>
+      )}
+    </div>
+  </div>
+
+  {errors.scopes && (
+    <div className="form-error">
+      <AlertCircle className="error-icon" />
+      {errors.scopes}
+    </div>
+  )}
+</div>
 
             {/* Project Status */}
             {project && (

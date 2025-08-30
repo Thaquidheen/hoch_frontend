@@ -11,7 +11,10 @@ import {
   Calculator,
   Layers,
   Hash,
-  Eye
+  Eye,
+  Plus,
+  Check,
+  Settings
 } from 'lucide-react';
 import './LineItemForm.css';
 
@@ -31,6 +34,7 @@ const LineItemForm = ({
   const [formData, setFormData] = useState({
     cabinet_type: '',
     scope: 'OPEN',
+    custom_kitchen_type: '', // For custom kitchen type input
     width_mm: '',
     depth_mm: '',
     height_mm: '',
@@ -43,6 +47,7 @@ const LineItemForm = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [pricingPreview, setPricingPreview] = useState(null);
   const [previewLoading, setPreviewLoading] = useState(false);
+  const [showCustomKitchenInput, setShowCustomKitchenInput] = useState(false);
 
   // Initialize form data when line item changes
   useEffect(() => {
@@ -50,6 +55,7 @@ const LineItemForm = ({
       setFormData({
         cabinet_type: lineItem.cabinet_type || '',
         scope: lineItem.scope || 'OPEN',
+        custom_kitchen_type: lineItem.custom_kitchen_type || '',
         width_mm: lineItem.width_mm || '',
         depth_mm: lineItem.depth_mm || '',
         height_mm: lineItem.height_mm || '',
@@ -58,6 +64,11 @@ const LineItemForm = ({
         door_material: lineItem.door_material || '',
         remarks: lineItem.remarks || ''
       });
+      
+      // Show custom input if there's a custom kitchen type
+      if (lineItem.custom_kitchen_type && lineItem.scope === 'CUSTOM') {
+        setShowCustomKitchenInput(true);
+      }
     } else {
       // Set default dimensions based on scope
       const defaultDepth = '600';
@@ -66,6 +77,7 @@ const LineItemForm = ({
       setFormData({
         cabinet_type: '',
         scope: 'OPEN',
+        custom_kitchen_type: '',
         width_mm: '',
         depth_mm: defaultDepth,
         height_mm: defaultHeight,
@@ -156,6 +168,11 @@ const LineItemForm = ({
       newErrors.cabinet_type = 'Cabinet type is required';
     }
 
+    // Custom kitchen type validation
+    if (formData.scope === 'CUSTOM' && !formData.custom_kitchen_type.trim()) {
+      newErrors.custom_kitchen_type = 'Custom kitchen type name is required';
+    }
+
     // Dimensions validation
     if (!formData.width_mm) {
       newErrors.width_mm = 'Width is required';
@@ -210,6 +227,30 @@ const LineItemForm = ({
     }
   };
 
+  // Handle scope change
+  const handleScopeChange = (value) => {
+    setFormData(prev => ({
+      ...prev,
+      scope: value,
+      custom_kitchen_type: value === 'CUSTOM' ? prev.custom_kitchen_type : ''
+    }));
+    
+    if (value === 'CUSTOM') {
+      setShowCustomKitchenInput(true);
+    } else {
+      setShowCustomKitchenInput(false);
+    }
+
+    // Clear scope errors
+    if (errors.scope || errors.custom_kitchen_type) {
+      setErrors(prev => ({
+        ...prev,
+        scope: '',
+        custom_kitchen_type: ''
+      }));
+    }
+  };
+
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -227,7 +268,9 @@ const LineItemForm = ({
         width_mm: parseInt(formData.width_mm),
         depth_mm: parseInt(formData.depth_mm),
         height_mm: parseInt(formData.height_mm),
-        qty: parseInt(formData.qty)
+        qty: parseInt(formData.qty),
+        // Only include custom_kitchen_type if scope is CUSTOM
+        custom_kitchen_type: formData.scope === 'CUSTOM' ? formData.custom_kitchen_type.trim() : null
       };
 
       const result = await onSave(submitData);
@@ -248,6 +291,7 @@ const LineItemForm = ({
     setFormData({
       cabinet_type: '',
       scope: 'OPEN',
+      custom_kitchen_type: '',
       width_mm: '',
       depth_mm: '600',
       height_mm: '850',
@@ -258,6 +302,7 @@ const LineItemForm = ({
     });
     setErrors({});
     setPricingPreview(null);
+    setShowCustomKitchenInput(false);
     onCancel();
   };
 
@@ -279,6 +324,20 @@ const LineItemForm = ({
   const getSelectedDoorMaterialName = () => {
     const selected = doorMaterials.find(m => m.id.toString() === formData.door_material.toString());
     return selected ? selected.name : '';
+  };
+
+  // Get kitchen type display name
+  const getKitchenTypeDisplayName = () => {
+    switch (formData.scope) {
+      case 'OPEN':
+        return 'Open Kitchen';
+      case 'WORKING':
+        return 'Working Kitchen';
+      case 'CUSTOM':
+        return formData.custom_kitchen_type || 'Custom Kitchen';
+      default:
+        return formData.scope;
+    }
   };
 
   // Format currency
@@ -349,20 +408,45 @@ const LineItemForm = ({
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">Scope *</label>
-                  <select
-                    className="form-select"
-                    value={formData.scope}
-                    onChange={(e) => handleInputChange('scope', e.target.value)}
-                  >
-                    <option value="OPEN">Open Kitchen</option>
-                    <option value="WORKING">Working Kitchen</option>
-                  </select>
+                  <label className="form-label">Kitchen Type *</label>
+                  <div className="kitchen-type-container">
+                    <select
+                      className="form-select"
+                      value={formData.scope}
+                      onChange={(e) => handleScopeChange(e.target.value)}
+                    >
+                      <option value="OPEN">Open Kitchen</option>
+                      <option value="WORKING">Working Kitchen</option>
+                      <option value="CUSTOM">Custom Kitchen Type</option>
+                    </select>
+                    
+                    {/* Custom Kitchen Type Input */}
+                    {showCustomKitchenInput && (
+                      <div className="custom-kitchen-input-container">
+                        <input
+                          type="text"
+                          placeholder="Enter custom kitchen type (e.g., 'Utility Kitchen', 'Pantry Kitchen')"
+                          className={`custom-kitchen-input ${errors.custom_kitchen_type ? 'error' : ''}`}
+                          value={formData.custom_kitchen_type}
+                          onChange={(e) => handleInputChange('custom_kitchen_type', e.target.value)}
+                        />
+                        {errors.custom_kitchen_type && (
+                          <div className="form-error">
+                            <AlertCircle className="error-icon" />
+                            {errors.custom_kitchen_type}
+                          </div>
+                        )}
+                        <div className="form-note">
+                          Examples: Utility Kitchen, Pantry Kitchen, Breakfast Kitchen, Bar Kitchen
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  
                   <div className="form-note">
-                    {formData.scope === 'OPEN' 
-                      ? 'Visible cabinet with finished surfaces'
-                      : 'Functional cabinet with working specifications'
-                    }
+                    {formData.scope === 'OPEN' && 'Visible cabinet with finished surfaces'}
+                    {formData.scope === 'WORKING' && 'Functional cabinet with working specifications'}
+                    {formData.scope === 'CUSTOM' && 'Custom kitchen type with specific requirements'}
                   </div>
                 </div>
               </div>
@@ -628,8 +712,8 @@ const LineItemForm = ({
                     <span className="summary-value">{getSelectedCabinetTypeName()}</span>
                   </div>
                   <div className="summary-row">
-                    <span className="summary-label">Scope:</span>
-                    <span className="summary-value">{formData.scope} Kitchen</span>
+                    <span className="summary-label">Kitchen Type:</span>
+                    <span className="summary-value">{getKitchenTypeDisplayName()}</span>
                   </div>
                   <div className="summary-row">
                     <span className="summary-label">Dimensions:</span>
