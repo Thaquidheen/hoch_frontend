@@ -181,13 +181,6 @@ const Sidebar = ({ collapsed, isOpen }) => {
         description: 'Area calculation formulas',
         roles: ['admin', 'superadmin'],
         status: 'coming-soon'
-      },
-        {
-  path: '/quotations/pdf-management',
-
-       label: 'PDF Management',
-         icon: FileText,
-    roles: ['admin', 'superadmin'],
       }
     ].filter(item => item.roles.includes(userRole));
   };
