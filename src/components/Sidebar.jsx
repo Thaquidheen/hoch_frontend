@@ -13,7 +13,7 @@ import {
   MdLightbulb, 
   MdSquareFoot 
 } from 'react-icons/md';
-import { DoorOpen } from 'lucide-react';
+import { DoorOpen, FileText } from 'lucide-react';
 import { GoProject } from 'react-icons/go';
 
 const Sidebar = ({ collapsed, isOpen }) => {
@@ -181,6 +181,13 @@ const Sidebar = ({ collapsed, isOpen }) => {
         description: 'Area calculation formulas',
         roles: ['admin', 'superadmin'],
         status: 'coming-soon'
+      },
+        {
+  path: '/quotations/pdf-management',
+
+       label: 'PDF Management',
+         icon: FileText,
+    roles: ['admin', 'superadmin'],
       }
     ].filter(item => item.roles.includes(userRole));
   };

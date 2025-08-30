@@ -12,6 +12,8 @@ import {
   CheckCircle,
   Settings,
   Plus,
+  X,
+  Eye,
   Layers,
   Lightbulb,
   RefreshCw,
@@ -31,13 +33,14 @@ import { enhancedLightingApi } from '../../service/masters/lightingRulesApi';
 import PlanImagesManager from '../../components/quotations/projects/PlanImagesManager';
 import { usePlanImages } from '../../hooks/masters/usePlanImages';
 import api from '../../service/api';
+import useQuotationPDF from '../../hooks/quotations/useQuotationPDF';
+import { History } from 'lucide-react';
 
 import './ProjectDetailPage.css';
 
 const ProjectDetailPage = () => {
   const { projectId } = useParams();
   const navigate = useNavigate();
-
   // State Management
   const [project, setProject] = useState(null);
   const [showLineItemForm, setShowLineItemForm] = useState(false);
@@ -49,6 +52,32 @@ const ProjectDetailPage = () => {
   const [showLightingItemForm, setShowLightingItemForm] = useState(false);
   const [editingLightingItem, setEditingLightingItem] = useState(null);
   const [loading, setLoading] = useState(false);
+
+   const [showPDFModal, setShowPDFModal] = useState(false);
+  const [showPDFHistory, setShowPDFHistory] = useState(false);
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [selectedPdfForEmail, setSelectedPdfForEmail] = useState(null);
+  const [emailForm, setEmailForm] = useState({
+    recipient_email: '',
+    recipient_name: '',
+    subject: '',
+    message: '',
+    send_copy_to_self: true
+  });
+
+  const {
+    pdfHistory,
+    templates,
+    loading: pdfLoading,
+    generatePDF,
+    downloadPDF,
+    emailPDF,
+    previewPDF,
+    getProjectHistory,
+    formatFileSize,
+    getStatusColor
+  } = useQuotationPDF();
+
 
   // Hooks
   const {
@@ -91,6 +120,8 @@ const ProjectDetailPage = () => {
 
   const { lightingRules } = useLightingRules();
 
+
+  
   // Fetch lighting items when project changes
   useEffect(() => {
     const fetchLightingItems = async () => {
@@ -419,6 +450,69 @@ const ProjectDetailPage = () => {
     showNotification('success', 'Plan images updated successfully');
   };
 
+   const handleGeneratePDF = async (templateId = null) => {
+    try {
+      await generatePDF(project.id, templateId);
+      setShowPDFModal(false);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+    }
+  };
+
+  const handleShowPDFOptions = () => {
+    setShowPDFModal(true);
+  };
+
+  const handleShowPDFHistory = async () => {
+    try {
+      await getProjectHistory(project.id);
+      setShowPDFHistory(true);
+    } catch (error) {
+      console.error('Error loading PDF history:', error);
+    }
+  };
+
+  const handleEmailPDF = (pdfItem) => {
+    setSelectedPdfForEmail(pdfItem);
+    setEmailForm({
+      recipient_email: project.customer_detail?.email || '',
+      recipient_name: project.customer_detail?.name || '',
+      subject: `Quotation - Project #${project.id}`,
+      message: `Dear ${project.customer_detail?.name || 'Customer'},
+
+Please find attached the quotation for Project #${project.id}.
+
+Project Details:
+- Budget Tier: ${project.budget_tier}
+- Total Amount: ${formatCurrency(project.totals?.grand_total || 0)}
+
+Thank you for choosing us.
+
+Best regards,
+Your Team`
+    });
+    setShowEmailModal(true);
+  };
+
+  const handleSendEmail = async () => {
+    try {
+      await emailPDF(selectedPdfForEmail.id, emailForm);
+      setShowEmailModal(false);
+      setSelectedPdfForEmail(null);
+    } catch (error) {
+      console.error('Error sending email:', error);
+    }
+  };
+
+  const handleDownloadPDF = async (pdfItem) => {
+    try {
+      const filename = `Project_${project.id}_Quotation.pdf`;
+      await downloadPDF(pdfItem.id, filename);
+    } catch (error) {
+      console.error('Error downloading PDF:', error);
+    }
+  };
+
   // Helper Functions
   const formatCurrency = (amount) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(amount || 0);
 
@@ -468,9 +562,29 @@ const ProjectDetailPage = () => {
               <button onClick={handleRecalculateProject} className="projectdetail-action-btn projectdetail-secondary" disabled={projectLoading || loading}>
                 <Calculator className="projectdetail-btn-icon" /> Recalculate Totals
               </button>
-              <button className="projectdetail-action-btn projectdetail-primary">
-                <FileText className="projectdetail-btn-icon" /> Generate PDF
-              </button>
+                 <div className="pdf-actions-group">
+                <button 
+                  onClick={handleShowPDFOptions}
+                  className="projectdetail-action-btn projectdetail-primary"
+                  disabled={pdfLoading}
+                >
+                  {pdfLoading ? (
+                    <RefreshCw className="projectdetail-btn-icon animate-spin" />
+                  ) : (
+                    <FileText className="projectdetail-btn-icon" />
+                  )}
+                  Generate PDF
+                </button>
+                
+                <button 
+                  onClick={handleShowPDFHistory}
+                  className="projectdetail-action-btn projectdetail-secondary"
+                  title="PDF History"
+                >
+                  <History className="projectdetail-btn-icon" />
+                  PDF History
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -732,7 +846,246 @@ const ProjectDetailPage = () => {
           )}
         </div>
       </div>
+ {showPDFModal && (
+        <div className="modal-overlay">
+          <div className="modal-content pdf-modal">
+            <div className="modal-header">
+              <h3>Generate PDF Quotation</h3>
+              <button 
+                onClick={() => setShowPDFModal(false)}
+                className="modal-close-btn"
+              >
+                <X className="icon" />
+              </button>
+            </div>
+            
+            <div className="modal-body">
+              <div className="pdf-options">
+                <h4>Choose Template</h4>
+                <div className="template-options">
+                  <button 
+                    onClick={() => handleGeneratePDF()}
+                    className="template-option default-template"
+                    disabled={pdfLoading}
+                  >
+                    <FileText className="template-icon" />
+                    <div className="template-info">
+                      <span className="template-name">Default Template</span>
+                      <span className="template-desc">Standard quotation format</span>
+                    </div>
+                  </button>
+                  
+                  {templates.map(template => (
+                    <button 
+                      key={template.id}
+                      onClick={() => handleGeneratePDF(template.id)}
+                      className="template-option"
+                      disabled={pdfLoading}
+                    >
+                      <SettingsIcon className="template-icon" />
+                      <div className="template-info">
+                        <span className="template-name">{template.name}</span>
+                        <span className="template-desc">{template.description}</span>
+                      </div>
+                      {template.is_default && (
+                        <span className="template-badge">Default</span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+                
+                <div className="pdf-actions">
+                  <button 
+                    onClick={() => previewPDF(project.id)}
+                    className="btn-secondary"
+                    disabled={pdfLoading}
+                  >
+                    <Eye className="btn-icon" />
+                    Preview
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
+      {/* PDF History Modal */}
+      {showPDFHistory && (
+        <div className="modal-overlay">
+          <div className="modal-content pdf-history-modal">
+            <div className="modal-header">
+              <h3>PDF History - Project #{project.id}</h3>
+              <button 
+                onClick={() => setShowPDFHistory(false)}
+                className="modal-close-btn"
+              >
+                <X className="icon" />
+              </button>
+            </div>
+            
+            <div className="modal-body">
+              {pdfHistory.filter(pdf => pdf.project_id === parseInt(project.id)).length === 0 ? (
+                <div className="empty-state">
+                  <FileText className="empty-icon" />
+                  <h4>No PDFs Generated</h4>
+                  <p>Generate your first PDF quotation for this project.</p>
+                </div>
+              ) : (
+                <div className="pdf-history-list">
+                  {pdfHistory
+                    .filter(pdf => pdf.project_id === parseInt(project.id))
+                    .map(pdf => (
+                    <div key={pdf.id} className="pdf-history-item">
+                      <div className="pdf-info">
+                        <div className="pdf-main-info">
+                          <FileText className="pdf-icon" />
+                          <div className="pdf-details">
+                            <span className="pdf-name">{pdf.template_name || 'Default Template'}</span>
+                            <span className="pdf-date">
+                              Generated on {new Date(pdf.generated_at).toLocaleDateString('en-IN', {
+                                year: 'numeric',
+                                month: 'short',
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="pdf-meta">
+                          <span className="pdf-size">{formatFileSize(pdf.file_size)}</span>
+                          <span className={`pdf-status ${getStatusColor(pdf.status)}`}>
+                            {pdf.status}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      <div className="pdf-actions">
+                        <button 
+                          onClick={() => handleDownloadPDF(pdf)}
+                          className="pdf-action-btn"
+                          title="Download"
+                        >
+                          <Download className="btn-icon" />
+                        </button>
+                        <button 
+                          onClick={() => handleEmailPDF(pdf)}
+                          className="pdf-action-btn"
+                          title="Email"
+                        >
+                          <Mail className="btn-icon" />
+                        </button>
+                        <button 
+                          onClick={() => previewPDF(project.id, pdf.template?.id)}
+                          className="pdf-action-btn"
+                          title="Preview"
+                        >
+                          <Eye className="btn-icon" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Email PDF Modal */}
+      {showEmailModal && (
+        <div className="modal-overlay">
+          <div className="modal-content email-modal">
+            <div className="modal-header">
+              <h3>Email PDF Quotation</h3>
+              <button 
+                onClick={() => setShowEmailModal(false)}
+                className="modal-close-btn"
+              >
+                <X className="icon" />
+              </button>
+            </div>
+            
+            <div className="modal-body">
+              <div className="email-form">
+                <div className="form-group">
+                  <label>Recipient Name</label>
+                  <input
+                    type="text"
+                    value={emailForm.recipient_name}
+                    onChange={(e) => setEmailForm({...emailForm, recipient_name: e.target.value})}
+                    className="form-input"
+                  />
+                </div>
+                
+                <div className="form-group">
+                  <label>Email Address *</label>
+                  <input
+                    type="email"
+                    value={emailForm.recipient_email}
+                    onChange={(e) => setEmailForm({...emailForm, recipient_email: e.target.value})}
+                    className="form-input"
+                    required
+                  />
+                </div>
+                
+                <div className="form-group">
+                  <label>Subject</label>
+                  <input
+                    type="text"
+                    value={emailForm.subject}
+                    onChange={(e) => setEmailForm({...emailForm, subject: e.target.value})}
+                    className="form-input"
+                  />
+                </div>
+                
+                <div className="form-group">
+                  <label>Message</label>
+                  <textarea
+                    value={emailForm.message}
+                    onChange={(e) => setEmailForm({...emailForm, message: e.target.value})}
+                    rows={6}
+                    className="form-textarea"
+                  />
+                </div>
+                
+                <div className="form-group">
+                  <label className="checkbox-label">
+                    <input
+                      type="checkbox"
+                      checked={emailForm.send_copy_to_self}
+                      onChange={(e) => setEmailForm({...emailForm, send_copy_to_self: e.target.checked})}
+                    />
+                    Send a copy to myself
+                  </label>
+                </div>
+              </div>
+            </div>
+            
+            <div className="modal-footer">
+              <button 
+                onClick={() => setShowEmailModal(false)}
+                className="btn-secondary"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleSendEmail}
+                className="btn-primary"
+                disabled={pdfLoading || !emailForm.recipient_email}
+              >
+                {pdfLoading ? (
+                  <RefreshCw className="btn-icon animate-spin" />
+                ) : (
+                  <Send className="btn-icon" />
+                )}
+                Send Email
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Line Item Form */}
       <LineItemForm
         isOpen={showLineItemForm}

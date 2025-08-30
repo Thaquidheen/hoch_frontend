@@ -36,6 +36,7 @@ import ProjectsPage from './pages/projects/ProjectsPage';
 import CreateProjectPage from './pages/projects/CreateProjectPage';
 import ProjectDetailPage from './pages/projects/ProjectDetailPage';
 import LightingRulesPage from './pages/Admin/LightingRulesPage';
+import QuotationPDFManager from './pages/projects/QuotationPDFManager';
 
 const App = () => {
   // Setup automatic token refresh
@@ -176,6 +177,17 @@ const App = () => {
               </PrivateRoute>
             }
           />
+            <Route
+            path="/quotations/pdf-management"
+            element={
+              <PrivateRoute roles={['superadmin', 'staff']}>
+                <Layout>
+                     <QuotationPDFManager />
+                </Layout>
+              </PrivateRoute>
+            }
+          />
+      
            <Route
             path="/door-rates"
             element={
