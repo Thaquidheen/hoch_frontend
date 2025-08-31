@@ -1,0 +1,819 @@
+/* PDFCustomizationForm.css - Black/Red/Grey Theme */
+
+/* CSS Variables for Consistent Theming */
+:root {
+  --primary-red: #dc2626;
+  --dark-red: #b91c1c;
+  --darker-red: #991b1b;
+  --accent-red: #ef4444;
+  --light-red: rgba(220, 38, 38, 0.1);
+  
+  --primary-black: #000000;
+  --dark-gray: #0a0a0a;
+  --medium-gray: #1a1a1a;
+  --light-gray: #374151;
+  --lighter-gray: #4b5563;
+  --text-gray: #9ca3af;
+  --text-light: #d1d5db;
+  --white: #ffffff;
+  
+  --success-green: #059669;
+  --success-light: #10b981;
+  --warning-yellow: #f59e0b;
+  --danger-red: #dc2626;
+  --info-blue: #3b82f6;
+  
+  --border-primary: 1px solid var(--primary-red);
+  --border-gray: 1px solid var(--light-gray);
+  --shadow-red: 0 4px 8px rgba(220, 38, 38, 0.3);
+  --shadow-dark: 0 8px 25px rgba(0, 0, 0, 0.5);
+  --shadow-glow: 0 8px 25px rgba(220, 38, 38, 0.15);
+  --shadow-subtle: 0 2px 8px rgba(0, 0, 0, 0.2);
+  --shadow-card: 0 4px 16px rgba(0, 0, 0, 0.3);
+  
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.2s ease;
+  --transition-slow: 0.3s ease;
+  
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  
+  --font-xs: 0.75rem;
+  --font-sm: 0.875rem;
+  --font-base: 1rem;
+  --font-lg: 1.125rem;
+  --font-xl: 1.25rem;
+  --font-2xl: 1.5rem;
+  
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+}
+
+/* =============================================================================
+   MAIN CONTAINER
+   ============================================================================= */
+
+.pdfcustomizationform-container {
+  background: linear-gradient(135deg, var(--dark-gray), var(--medium-gray));
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: var(--shadow-dark);
+  color: var(--text-light);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* =============================================================================
+   HEADER SECTION
+   ============================================================================= */
+
+.pdfcustomizationform-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-6);
+  background: linear-gradient(135deg, var(--primary-red), var(--dark-red));
+  color: var(--white);
+  border-bottom: var(--border-gray);
+  flex-shrink: 0;
+}
+
+.pdfcustomizationform-header-content {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.pdfcustomizationform-header-icon {
+  width: var(--space-8);
+  height: var(--space-8);
+  flex-shrink: 0;
+  color: var(--white);
+}
+
+.pdfcustomizationform-header-text {
+  flex: 1;
+}
+
+.pdfcustomizationform-title {
+  font-size: var(--font-xl);
+  font-weight: 700;
+  margin: 0 0 var(--space-1) 0;
+  color: var(--white);
+}
+
+.pdfcustomizationform-subtitle {
+  font-size: var(--font-sm);
+  margin: 0;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.pdfcustomizationform-changes-indicator {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  background: rgba(245, 158, 11, 0.2);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-radius: var(--radius-md);
+  animation: pdfcustomizationform-pulse 2s infinite;
+}
+
+@keyframes pdfcustomizationform-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.pdfcustomizationform-changes-icon {
+  width: var(--space-4);
+  height: var(--space-4);
+  color: var(--warning-yellow);
+}
+
+.pdfcustomizationform-changes-text {
+  font-size: var(--font-xs);
+  font-weight: 600;
+  color: var(--warning-yellow);
+}
+
+/* =============================================================================
+   CONTENT SECTION
+   ============================================================================= */
+
+.pdfcustomizationform-content {
+  padding: var(--space-6);
+  background: var(--primary-black);
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+/* =============================================================================
+   SECTIONS
+   ============================================================================= */
+
+.pdfcustomizationform-section {
+  background: linear-gradient(135deg, var(--medium-gray), var(--light-gray));
+  border: var(--border-gray);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+}
+
+.pdfcustomizationform-section-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-5);
+  background: none;
+  border: none;
+  color: var(--text-light);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+}
+
+.pdfcustomizationform-section-toggle:hover {
+  background: rgba(220, 38, 38, 0.05);
+}
+
+.pdfcustomizationform-section-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.pdfcustomizationform-section-icon {
+  width: var(--space-5);
+  height: var(--space-5);
+  color: var(--primary-red);
+  flex-shrink: 0;
+  transition: transform var(--transition-normal);
+}
+
+.pdfcustomizationform-section-title {
+  font-size: var(--font-lg);
+  font-weight: 600;
+  margin: 0;
+  color: var(--text-light);
+}
+
+.pdfcustomizationform-section-summary {
+  font-size: var(--font-xs);
+  color: var(--text-gray);
+  font-weight: 500;
+}
+
+.pdfcustomizationform-section-content {
+  padding: 0 var(--space-5) var(--space-5) var(--space-5);
+  background: rgba(0, 0, 0, 0.2);
+  border-top: 1px solid var(--medium-gray);
+}
+
+/* =============================================================================
+   TEMPLATE OPTIONS
+   ============================================================================= */
+
+.pdfcustomizationform-template-options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-5);
+}
+
+.pdfcustomizationform-template-option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  background: rgba(0, 0, 0, 0.3);
+  border: var(--border-gray);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  position: relative;
+}
+
+.pdfcustomizationform-template-option:hover {
+  background: rgba(220, 38, 38, 0.1);
+  border-color: var(--primary-red);
+  transform: translateY(-1px);
+}
+
+.pdfcustomizationform-template-option.selected {
+  border-color: var(--primary-red);
+  background: rgba(220, 38, 38, 0.1);
+  box-shadow: var(--shadow-glow);
+}
+
+.pdfcustomizationform-radio {
+  width: var(--space-5);
+  height: var(--space-5);
+  accent-color: var(--primary-red);
+  cursor: pointer;
+}
+
+.pdfcustomizationform-template-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.pdfcustomizationform-template-name {
+  font-size: var(--font-base);
+  font-weight: 600;
+  color: var(--text-light);
+}
+
+.pdfcustomizationform-template-desc {
+  font-size: var(--font-sm);
+  color: var(--text-gray);
+  line-height: 1.4;
+}
+
+.pdfcustomizationform-template-selected {
+  width: var(--space-6);
+  height: var(--space-6);
+  color: var(--primary-red);
+  animation: pdfcustomizationform-selected-bounce 0.3s ease-out;
+}
+
+@keyframes pdfcustomizationform-selected-bounce {
+  0% { transform: scale(0); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+/* =============================================================================
+   OPTION CARDS & GRIDS
+   ============================================================================= */
+
+.pdfcustomizationform-options-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--space-4);
+}
+
+.pdfcustomizationform-option-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: rgba(0, 0, 0, 0.4);
+  border: var(--border-gray);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+}
+
+.pdfcustomizationform-option-card:hover {
+  background: rgba(0, 0, 0, 0.6);
+  border-color: var(--primary-red);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-subtle);
+}
+
+.pdfcustomizationform-option-card.enabled {
+  border-color: var(--success-green);
+  background: rgba(5, 150, 105, 0.1);
+}
+
+.pdfcustomizationform-option-card.enabled:hover {
+  background: rgba(5, 150, 105, 0.15);
+}
+
+.pdfcustomizationform-option-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.pdfcustomizationform-option-icon {
+  width: var(--space-6);
+  height: var(--space-6);
+  color: var(--text-gray);
+  transition: color var(--transition-normal);
+}
+
+.pdfcustomizationform-option-card.enabled .pdfcustomizationform-option-icon {
+  color: var(--success-green);
+}
+
+.pdfcustomizationform-option-toggle {
+  position: relative;
+  width: var(--space-10);
+  height: var(--space-5);
+}
+
+.pdfcustomizationform-checkbox {
+  position: absolute;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+  z-index: 2;
+}
+
+.pdfcustomizationform-toggle-slider {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--light-gray);
+  border-radius: var(--space-5);
+  transition: all var(--transition-normal);
+  cursor: pointer;
+}
+
+.pdfcustomizationform-toggle-slider::before {
+  content: '';
+  position: absolute;
+  height: calc(var(--space-5) - 4px);
+  width: calc(var(--space-5) - 4px);
+  left: 2px;
+  top: 2px;
+  background: var(--white);
+  border-radius: 50%;
+  transition: all var(--transition-normal);
+}
+
+.pdfcustomizationform-checkbox:checked + .pdfcustomizationform-toggle-slider {
+  background: var(--success-green);
+}
+
+.pdfcustomizationform-checkbox:checked + .pdfcustomizationform-toggle-slider::before {
+  transform: translateX(calc(var(--space-5) - 2px));
+}
+
+.pdfcustomizationform-option-content {
+  flex: 1;
+}
+
+.pdfcustomizationform-option-title {
+  font-size: var(--font-sm);
+  font-weight: 600;
+  color: var(--text-light);
+  margin: 0 0 var(--space-1) 0;
+}
+
+.pdfcustomizationform-option-desc {
+  font-size: var(--font-xs);
+  color: var(--text-gray);
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* =============================================================================
+   CHECKBOX GRID
+   ============================================================================= */
+
+.pdfcustomizationform-checkbox-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--space-3);
+}
+
+.pdfcustomizationform-checkbox-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+}
+
+.pdfcustomizationform-checkbox-item:hover {
+  background: rgba(0, 0, 0, 0.5);
+  transform: translateX(2px);
+}
+
+.pdfcustomizationform-checkbox-item input[type="checkbox"] {
+  width: var(--space-4);
+  height: var(--space-4);
+  accent-color: var(--primary-red);
+  cursor: pointer;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.pdfcustomizationform-checkbox-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.pdfcustomizationform-checkbox-label {
+  font-size: var(--font-sm);
+  font-weight: 500;
+  color: var(--text-light);
+  cursor: pointer;
+}
+
+.pdfcustomizationform-checkbox-desc {
+  font-size: var(--font-xs);
+  color: var(--text-gray);
+  cursor: pointer;
+}
+
+/* =============================================================================
+   INPUT ELEMENTS
+   ============================================================================= */
+
+.pdfcustomizationform-input-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.pdfcustomizationform-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+
+.pdfcustomizationform-input-label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-sm);
+  font-weight: 500;
+  color: var(--text-light);
+}
+
+.pdfcustomizationform-label-icon {
+  width: var(--space-4);
+  height: var(--space-4);
+  color: var(--primary-red);
+  flex-shrink: 0;
+}
+
+.pdfcustomizationform-input,
+.pdfcustomizationform-textarea {
+  width: 100%;
+  padding: var(--space-3);
+  background: var(--dark-gray);
+  border: var(--border-gray);
+  border-radius: var(--radius-md);
+  color: var(--text-light);
+  font-size: var(--font-sm);
+  transition: all var(--transition-normal);
+  resize: vertical;
+  font-family: inherit;
+}
+
+.pdfcustomizationform-input:focus,
+.pdfcustomizationform-textarea:focus {
+  outline: none;
+  border-color: var(--primary-red);
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+}
+
+.pdfcustomizationform-input.error,
+.pdfcustomizationform-textarea.error {
+  border-color: var(--danger-red);
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+}
+
+.pdfcustomizationform-input::placeholder,
+.pdfcustomizationform-textarea::placeholder {
+  color: var(--text-gray);
+}
+
+.pdfcustomizationform-field-error {
+  font-size: var(--font-xs);
+  color: var(--danger-red);
+  font-weight: 500;
+}
+
+.pdfcustomizationform-error-message {
+  padding: var(--space-3);
+  background: rgba(220, 38, 38, 0.1);
+  border: 1px solid var(--danger-red);
+  border-radius: var(--radius-md);
+  color: var(--danger-red);
+  font-size: var(--font-sm);
+  font-weight: 500;
+  margin-bottom: var(--space-4);
+}
+
+.pdfcustomizationform-textarea-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--space-4);
+}
+
+/* =============================================================================
+   FOOTER SECTION
+   ============================================================================= */
+
+.pdfcustomizationform-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-6);
+  background: var(--medium-gray);
+  border-top: var(--border-gray);
+  flex-shrink: 0;
+}
+
+.pdfcustomizationform-footer-info {
+  flex: 1;
+}
+
+.pdfcustomizationform-footer-text {
+  font-size: var(--font-sm);
+  color: var(--text-gray);
+  font-style: italic;
+}
+
+.pdfcustomizationform-footer-actions {
+  display: flex;
+  gap: var(--space-3);
+}
+
+/* =============================================================================
+   BUTTONS
+   ============================================================================= */
+
+.pdfcustomizationform-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-6);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--font-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  white-space: nowrap;
+}
+
+.pdfcustomizationform-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.pdfcustomizationform-btn.primary {
+  background: linear-gradient(135deg, var(--primary-red), var(--dark-red));
+  color: var(--white);
+  border: 1px solid var(--primary-red);
+}
+
+.pdfcustomizationform-btn.primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, var(--dark-red), var(--darker-red));
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-red);
+}
+
+.pdfcustomizationform-btn.secondary {
+  background: var(--light-gray);
+  color: var(--text-light);
+  border: var(--border-gray);
+}
+
+.pdfcustomizationform-btn.secondary:hover:not(:disabled) {
+  background: var(--lighter-gray);
+  border-color: var(--primary-red);
+  transform: translateY(-1px);
+}
+
+.pdfcustomizationform-btn.tertiary {
+  background: transparent;
+  color: var(--text-gray);
+  border: var(--border-gray);
+}
+
+.pdfcustomizationform-btn.tertiary:hover:not(:disabled) {
+  background: var(--medium-gray);
+  color: var(--text-light);
+  border-color: var(--primary-red);
+}
+
+.pdfcustomizationform-btn-icon {
+  width: var(--space-4);
+  height: var(--space-4);
+  flex-shrink: 0;
+}
+
+.pdfcustomizationform-spinner {
+  width: var(--space-4);
+  height: var(--space-4);
+  border: 2px solid transparent;
+  border-top: 2px solid currentColor;
+  border-radius: 50%;
+  animation: pdfcustomizationform-spin 1s linear infinite;
+}
+
+@keyframes pdfcustomizationform-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* =============================================================================
+   RESPONSIVE DESIGN
+   ============================================================================= */
+
+@media (max-width: 1024px) {
+  .pdfcustomizationform-options-grid {
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--space-3);
+  }
+
+  .pdfcustomizationform-checkbox-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pdfcustomizationform-textarea-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-3);
+  }
+}
+
+@media (max-width: 768px) {
+  .pdfcustomizationform-header {
+    flex-direction: column;
+    gap: var(--space-4);
+    align-items: stretch;
+  }
+
+  .pdfcustomizationform-content {
+    padding: var(--space-4);
+  }
+
+  .pdfcustomizationform-input-row {
+    grid-template-columns: 1fr;
+    gap: var(--space-3);
+  }
+
+  .pdfcustomizationform-options-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-3);
+  }
+
+  .pdfcustomizationform-footer {
+    flex-direction: column;
+    gap: var(--space-4);
+    align-items: stretch;
+  }
+
+  .pdfcustomizationform-footer-actions {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .pdfcustomizationform-btn {
+    flex: 1;
+    min-width: 120px;
+  }
+}
+
+@media (max-width: 640px) {
+  .pdfcustomizationform-header {
+    padding: var(--space-4);
+  }
+
+  .pdfcustomizationform-content {
+    padding: var(--space-3);
+  }
+
+  .pdfcustomizationform-section-toggle {
+    padding: var(--space-4);
+  }
+
+  .pdfcustomizationform-section-content {
+    padding: 0 var(--space-4) var(--space-4) var(--space-4);
+  }
+
+  .pdfcustomizationform-template-options {
+    padding: var(--space-4);
+  }
+
+  .pdfcustomizationform-footer {
+    padding: var(--space-4);
+  }
+
+  .pdfcustomizationform-footer-actions {
+    flex-direction: column;
+  }
+
+  .pdfcustomizationform-btn {
+    width: 100%;
+  }
+}
+
+/* =============================================================================
+   ACCESSIBILITY
+   ============================================================================= */
+
+.pdfcustomizationform-section-toggle:focus,
+.pdfcustomizationform-template-option:focus,
+.pdfcustomizationform-option-card:focus,
+.pdfcustomizationform-checkbox-item:focus,
+.pdfcustomizationform-input:focus,
+.pdfcustomizationform-textarea:focus,
+.pdfcustomizationform-btn:focus {
+  outline: 2px solid var(--primary-red);
+  outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .pdfcustomizationform-container {
+    border: 2px solid var(--white);
+  }
+
+  .pdfcustomizationform-section {
+    border: 2px solid var(--text-light);
+  }
+
+  .pdfcustomizationform-option-card.enabled {
+    border: 2px solid var(--success-green);
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .pdfcustomizationform-changes-indicator,
+  .pdfcustomizationform-selected-bounce,
+  .pdfcustomizationform-spinner,
+  .pdfcustomizationform-section-toggle,
+  .pdfcustomizationform-template-option,
+  .pdfcustomizationform-option-card,
+  .pdfcustomizationform-checkbox-item,
+  .pdfcustomizationform-btn {
+    animation: none;
+    transition: none;
+  }
+
+  .pdfcustomizationform-template-option:hover,
+  .pdfcustomizationform-option-card:hover,
+  .pdfcustomizationform-checkbox-item:hover,
+  .pdfcustomizationform-btn:hover {
+    transform: none;
+  }
+}

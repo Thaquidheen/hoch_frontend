@@ -1,0 +1,805 @@
+/* PDFGenerationModal.css - Black/Red/Grey Theme */
+
+/* CSS Variables for Consistent Theming */
+:root {
+  --primary-red: #dc2626;
+  --dark-red: #b91c1c;
+  --darker-red: #991b1b;
+  --accent-red: #ef4444;
+  --light-red: rgba(220, 38, 38, 0.1);
+  
+  --primary-black: #000000;
+  --dark-gray: #0a0a0a;
+  --medium-gray: #1a1a1a;
+  --light-gray: #374151;
+  --lighter-gray: #4b5563;
+  --text-gray: #9ca3af;
+  --text-light: #d1d5db;
+  --white: #ffffff;
+  
+  --success-green: #059669;
+  --warning-yellow: #f59e0b;
+  
+  --border-primary: 1px solid var(--primary-red);
+  --border-gray: 1px solid var(--light-gray);
+  --shadow-red: 0 4px 8px rgba(220, 38, 38, 0.3);
+  --shadow-dark: 0 8px 25px rgba(0, 0, 0, 0.5);
+  --shadow-glow: 0 8px 25px rgba(220, 38, 38, 0.15);
+  
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.2s ease;
+  --transition-slow: 0.3s ease;
+  
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  
+  --font-xs: 0.75rem;
+  --font-sm: 0.875rem;
+  --font-base: 1rem;
+  --font-lg: 1.125rem;
+  --font-xl: 1.25rem;
+  --font-2xl: 1.5rem;
+  
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  
+  --z-modal: 1000;
+}
+
+/* =============================================================================
+   MODAL OVERLAY & CONTAINER
+   ============================================================================= */
+
+.pdfgenerationmodal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: var(--z-modal);
+  padding: var(--space-4);
+  animation: pdfgenerationmodal-fade-in 0.2s ease-out;
+}
+
+@keyframes pdfgenerationmodal-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.pdfgenerationmodal-container {
+  background: linear-gradient(135deg, var(--dark-gray), var(--medium-gray));
+  border: var(--border-primary);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-glow);
+  max-width: 800px;
+  width: 100%;
+  max-height: 90vh;
+  overflow: hidden;
+  animation: pdfgenerationmodal-slide-up 0.3s ease-out;
+}
+
+@keyframes pdfgenerationmodal-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* =============================================================================
+   MODAL HEADER
+   ============================================================================= */
+
+.pdfgenerationmodal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-6);
+  background: linear-gradient(135deg, var(--primary-red), var(--dark-red));
+  color: var(--white);
+  border-bottom: var(--border-gray);
+}
+
+.pdfgenerationmodal-header-content {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.pdfgenerationmodal-header-icon {
+  width: var(--space-8);
+  height: var(--space-8);
+  flex-shrink: 0;
+}
+
+.pdfgenerationmodal-header-text {
+  flex: 1;
+}
+
+.pdfgenerationmodal-title {
+  font-size: var(--font-xl);
+  font-weight: 700;
+  margin: 0;
+  color: var(--white);
+}
+
+.pdfgenerationmodal-subtitle {
+  font-size: var(--font-sm);
+  margin: var(--space-1) 0 0 0;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.pdfgenerationmodal-close-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--space-10);
+  height: var(--space-10);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius-md);
+  color: var(--white);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+}
+
+.pdfgenerationmodal-close-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.05);
+}
+
+.pdfgenerationmodal-close-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pdfgenerationmodal-close-icon {
+  width: var(--space-5);
+  height: var(--space-5);
+}
+
+/* =============================================================================
+   PROGRESS INDICATOR
+   ============================================================================= */
+
+.pdfgenerationmodal-progress {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-6);
+  background: var(--primary-black);
+  border-bottom: var(--border-gray);
+  gap: var(--space-4);
+}
+
+.pdfgenerationmodal-progress-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  transition: all var(--transition-normal);
+}
+
+.pdfgenerationmodal-progress-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--space-8);
+  height: var(--space-8);
+  border-radius: 50%;
+  background: var(--light-gray);
+  color: var(--text-gray);
+  font-size: var(--font-sm);
+  font-weight: 600;
+  border: 2px solid var(--light-gray);
+  transition: all var(--transition-normal);
+}
+
+.pdfgenerationmodal-progress-step.active .pdfgenerationmodal-progress-number {
+  background: var(--primary-red);
+  border-color: var(--primary-red);
+  color: var(--white);
+  box-shadow: 0 0 12px rgba(220, 38, 38, 0.4);
+}
+
+.pdfgenerationmodal-progress-step.completed .pdfgenerationmodal-progress-number {
+  background: var(--success-green);
+  border-color: var(--success-green);
+  color: var(--white);
+}
+
+.pdfgenerationmodal-progress-label {
+  font-size: var(--font-xs);
+  color: var(--text-gray);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 500;
+  transition: color var(--transition-normal);
+}
+
+.pdfgenerationmodal-progress-step.active .pdfgenerationmodal-progress-label,
+.pdfgenerationmodal-progress-step.completed .pdfgenerationmodal-progress-label {
+  color: var(--text-light);
+}
+
+.pdfgenerationmodal-progress-line {
+  width: var(--space-12);
+  height: 2px;
+  background: var(--light-gray);
+  border-radius: 1px;
+}
+
+/* =============================================================================
+   MODAL CONTENT
+   ============================================================================= */
+
+.pdfgenerationmodal-content {
+  padding: var(--space-6);
+  max-height: 60vh;
+  overflow-y: auto;
+  background: linear-gradient(135deg, var(--dark-gray), var(--medium-gray));
+  color: var(--text-light);
+}
+
+.pdfgenerationmodal-section-title {
+  font-size: var(--font-lg);
+  font-weight: 600;
+  color: var(--white);
+  margin: 0 0 var(--space-6) 0;
+  text-align: center;
+}
+
+/* =============================================================================
+   TEMPLATE SELECTION
+   ============================================================================= */
+
+.pdfgenerationmodal-template-section {
+  text-align: center;
+}
+
+.pdfgenerationmodal-template-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-4);
+  margin-bottom: var(--space-8);
+}
+
+@media (min-width: 640px) {
+  .pdfgenerationmodal-template-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.pdfgenerationmodal-template-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--space-6);
+  background: linear-gradient(135deg, var(--medium-gray), var(--light-gray));
+  border: var(--border-gray);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  text-align: center;
+  overflow: hidden;
+}
+
+.pdfgenerationmodal-template-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--primary-red), var(--accent-red));
+  transform: translateX(-100%);
+  transition: transform var(--transition-normal);
+}
+
+.pdfgenerationmodal-template-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-glow);
+  border-color: var(--primary-red);
+}
+
+.pdfgenerationmodal-template-card:hover::before {
+  transform: translateX(0);
+}
+
+.pdfgenerationmodal-template-card.selected {
+  border-color: var(--primary-red);
+  background: linear-gradient(135deg, var(--primary-red), var(--dark-red));
+  color: var(--white);
+  box-shadow: var(--shadow-red);
+}
+
+.pdfgenerationmodal-template-card.selected::before {
+  transform: translateX(0);
+}
+
+.pdfgenerationmodal-template-icon {
+  width: var(--space-12);
+  height: var(--space-12);
+  margin-bottom: var(--space-4);
+  color: var(--text-gray);
+  transition: color var(--transition-normal);
+}
+
+.pdfgenerationmodal-template-card.selected .pdfgenerationmodal-template-icon {
+  color: var(--white);
+}
+
+.pdfgenerationmodal-template-icon.detailed {
+  color: var(--accent-red);
+}
+
+.pdfgenerationmodal-template-icon.standard {
+  color: var(--warning-yellow);
+}
+
+.pdfgenerationmodal-template-icon.simple {
+  color: var(--success-green);
+}
+
+.pdfgenerationmodal-template-info {
+  flex: 1;
+}
+
+.pdfgenerationmodal-template-name {
+  font-size: var(--font-lg);
+  font-weight: 600;
+  margin: 0 0 var(--space-2) 0;
+  color: var(--text-light);
+  transition: color var(--transition-normal);
+}
+
+.pdfgenerationmodal-template-card.selected .pdfgenerationmodal-template-name {
+  color: var(--white);
+}
+
+.pdfgenerationmodal-template-desc {
+  font-size: var(--font-sm);
+  margin: 0;
+  color: var(--text-gray);
+  line-height: 1.4;
+  transition: color var(--transition-normal);
+}
+
+.pdfgenerationmodal-template-card.selected .pdfgenerationmodal-template-desc {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.pdfgenerationmodal-template-selected {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  width: var(--space-6);
+  height: var(--space-6);
+  color: var(--white);
+  animation: pdfgenerationmodal-check-bounce 0.3s ease-out;
+}
+
+@keyframes pdfgenerationmodal-check-bounce {
+  0% {
+    transform: scale(0);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.pdfgenerationmodal-template-actions {
+  display: flex;
+  gap: var(--space-4);
+  justify-content: center;
+}
+
+/* =============================================================================
+   CUSTOMIZATION SECTION
+   ============================================================================= */
+
+.pdfgenerationmodal-customize-section {
+  max-height: none;
+}
+
+.pdfgenerationmodal-customize-group {
+  margin-bottom: var(--space-8);
+  background: linear-gradient(135deg, var(--primary-black), var(--medium-gray));
+  border: var(--border-gray);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+}
+
+.pdfgenerationmodal-group-title {
+  font-size: var(--font-base);
+  font-weight: 600;
+  color: var(--primary-red);
+  margin: 0 0 var(--space-4) 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.pdfgenerationmodal-checkbox-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: var(--space-3);
+}
+
+.pdfgenerationmodal-checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+}
+
+.pdfgenerationmodal-checkbox-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateX(2px);
+}
+
+.pdfgenerationmodal-checkbox {
+  width: var(--space-5);
+  height: var(--space-5);
+  accent-color: var(--primary-red);
+  cursor: pointer;
+}
+
+.pdfgenerationmodal-checkbox-label {
+  font-size: var(--font-sm);
+  color: var(--text-light);
+  cursor: pointer;
+}
+
+.pdfgenerationmodal-input-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.pdfgenerationmodal-input-group {
+  margin-bottom: var(--space-4);
+}
+
+.pdfgenerationmodal-input-label {
+  display: block;
+  font-size: var(--font-sm);
+  font-weight: 500;
+  color: var(--text-light);
+  margin-bottom: var(--space-2);
+}
+
+.pdfgenerationmodal-input,
+.pdfgenerationmodal-textarea {
+  width: 100%;
+  padding: var(--space-3);
+  background: var(--dark-gray);
+  border: var(--border-gray);
+  border-radius: var(--radius-md);
+  color: var(--text-light);
+  font-size: var(--font-sm);
+  transition: all var(--transition-normal);
+  resize: vertical;
+}
+
+.pdfgenerationmodal-input:focus,
+.pdfgenerationmodal-textarea:focus {
+  outline: none;
+  border-color: var(--primary-red);
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+}
+
+.pdfgenerationmodal-input::placeholder,
+.pdfgenerationmodal-textarea::placeholder {
+  color: var(--text-gray);
+}
+
+.pdfgenerationmodal-customize-actions {
+  display: flex;
+  gap: var(--space-4);
+  justify-content: center;
+  margin-top: var(--space-8);
+}
+
+/* =============================================================================
+   GENERATING SECTION
+   ============================================================================= */
+
+.pdfgenerationmodal-generating-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  text-align: center;
+}
+
+.pdfgenerationmodal-generating-content {
+  max-width: 400px;
+}
+
+.pdfgenerationmodal-generating-icon {
+  width: var(--space-12);
+  height: var(--space-12);
+  color: var(--primary-red);
+  margin: 0 auto var(--space-6) auto;
+  animation: pdfgenerationmodal-spin 2s linear infinite;
+}
+
+@keyframes pdfgenerationmodal-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.pdfgenerationmodal-generating-title {
+  font-size: var(--font-xl);
+  font-weight: 600;
+  color: var(--white);
+  margin: 0 0 var(--space-3) 0;
+}
+
+.pdfgenerationmodal-generating-desc {
+  font-size: var(--font-base);
+  color: var(--text-gray);
+  margin: 0 0 var(--space-6) 0;
+  line-height: 1.6;
+}
+
+.pdfgenerationmodal-progress-bar {
+  width: 100%;
+  height: 4px;
+  background: var(--light-gray);
+  border-radius: 2px;
+  overflow: hidden;
+  position: relative;
+}
+
+.pdfgenerationmodal-progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary-red), var(--accent-red));
+  border-radius: 2px;
+  animation: pdfgenerationmodal-progress-fill 3s ease-in-out infinite;
+}
+
+@keyframes pdfgenerationmodal-progress-fill {
+  0% {
+    width: 0%;
+    transform: translateX(-100%);
+  }
+  50% {
+    width: 100%;
+    transform: translateX(0%);
+  }
+  100% {
+    width: 100%;
+    transform: translateX(100%);
+  }
+}
+
+/* =============================================================================
+   BUTTONS
+   ============================================================================= */
+
+.pdfgenerationmodal-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-6);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--font-sm);
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  min-width: 140px;
+}
+
+.pdfgenerationmodal-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.pdfgenerationmodal-btn.primary {
+  background: linear-gradient(135deg, var(--primary-red), var(--dark-red));
+  color: var(--white);
+  border: 1px solid var(--primary-red);
+}
+
+.pdfgenerationmodal-btn.primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, var(--dark-red), var(--darker-red));
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-red);
+}
+
+.pdfgenerationmodal-btn.secondary {
+  background: var(--medium-gray);
+  color: var(--text-light);
+  border: var(--border-gray);
+}
+
+.pdfgenerationmodal-btn.secondary:hover:not(:disabled) {
+  background: var(--light-gray);
+  border-color: var(--primary-red);
+  transform: translateY(-1px);
+}
+
+.pdfgenerationmodal-btn-icon {
+  width: var(--space-4);
+  height: var(--space-4);
+  flex-shrink: 0;
+}
+
+/* =============================================================================
+   FOOTER
+   ============================================================================= */
+
+.pdfgenerationmodal-footer {
+  padding: var(--space-4) var(--space-6);
+  background: var(--primary-black);
+  border-top: var(--border-gray);
+  text-align: center;
+}
+
+.pdfgenerationmodal-footer-note {
+  font-size: var(--font-xs);
+  color: var(--text-gray);
+  margin: 0;
+  font-style: italic;
+}
+
+/* =============================================================================
+   RESPONSIVE DESIGN
+   ============================================================================= */
+
+@media (max-width: 768px) {
+  .pdfgenerationmodal-container {
+    margin: var(--space-4);
+    max-height: 95vh;
+  }
+
+  .pdfgenerationmodal-header {
+    padding: var(--space-4);
+  }
+
+  .pdfgenerationmodal-progress {
+    padding: var(--space-4);
+    gap: var(--space-2);
+  }
+
+  .pdfgenerationmodal-progress-line {
+    width: var(--space-6);
+  }
+
+  .pdfgenerationmodal-content {
+    padding: var(--space-4);
+  }
+
+  .pdfgenerationmodal-template-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pdfgenerationmodal-checkbox-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pdfgenerationmodal-input-row {
+    grid-template-columns: 1fr;
+  }
+
+  .pdfgenerationmodal-template-actions,
+  .pdfgenerationmodal-customize-actions {
+    flex-direction: column;
+  }
+
+  .pdfgenerationmodal-btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .pdfgenerationmodal-overlay {
+    padding: var(--space-2);
+  }
+
+  .pdfgenerationmodal-header {
+    padding: var(--space-3);
+  }
+
+  .pdfgenerationmodal-header-content {
+    gap: var(--space-2);
+  }
+
+  .pdfgenerationmodal-header-icon {
+    width: var(--space-6);
+    height: var(--space-6);
+  }
+
+  .pdfgenerationmodal-title {
+    font-size: var(--font-lg);
+  }
+
+  .pdfgenerationmodal-progress {
+    padding: var(--space-3);
+  }
+
+  .pdfgenerationmodal-content {
+    padding: var(--space-3);
+  }
+
+  .pdfgenerationmodal-customize-group {
+    padding: var(--space-4);
+  }
+}
+
+/* =============================================================================
+   ACCESSIBILITY
+   ============================================================================= */
+
+.pdfgenerationmodal-overlay:focus-within {
+  outline: none;
+}
+
+.pdfgenerationmodal-close-btn:focus,
+.pdfgenerationmodal-btn:focus,
+.pdfgenerationmodal-input:focus,
+.pdfgenerationmodal-textarea:focus,
+.pdfgenerationmodal-checkbox:focus {
+  outline: 2px solid var(--primary-red);
+  outline-offset: 2px;
+}
+
+.pdfgenerationmodal-template-card:focus {
+  outline: 2px solid var(--primary-red);
+  outline-offset: 2px;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .pdfgenerationmodal-overlay,
+  .pdfgenerationmodal-container,
+  .pdfgenerationmodal-template-card,
+  .pdfgenerationmodal-btn,
+  .pdfgenerationmodal-checkbox-item {
+    animation: none;
+    transition: none;
+  }
+
+  .pdfgenerationmodal-generating-icon,
+  .pdfgenerationmodal-progress-bar-fill {
+    animation: none;
+  }
+}

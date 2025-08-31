@@ -1,0 +1,742 @@
+/* PDFHistoryTable.css - Black/Red/Grey Theme */
+
+/* CSS Variables for Consistent Theming */
+:root {
+  --primary-red: #dc2626;
+  --dark-red: #b91c1c;
+  --darker-red: #991b1b;
+  --accent-red: #ef4444;
+  --light-red: rgba(220, 38, 38, 0.1);
+  
+  --primary-black: #000000;
+  --dark-gray: #0a0a0a;
+  --medium-gray: #1a1a1a;
+  --light-gray: #374151;
+  --lighter-gray: #4b5563;
+  --text-gray: #9ca3af;
+  --text-light: #d1d5db;
+  --white: #ffffff;
+  
+  --success-green: #059669;
+  --success-light: #10b981;
+  --warning-yellow: #f59e0b;
+  --danger-red: #dc2626;
+  
+  --border-primary: 1px solid var(--primary-red);
+  --border-gray: 1px solid var(--light-gray);
+  --shadow-red: 0 4px 8px rgba(220, 38, 38, 0.3);
+  --shadow-dark: 0 8px 25px rgba(0, 0, 0, 0.5);
+  --shadow-glow: 0 8px 25px rgba(220, 38, 38, 0.15);
+  --shadow-subtle: 0 2px 8px rgba(0, 0, 0, 0.2);
+  
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.2s ease;
+  --transition-slow: 0.3s ease;
+  
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  
+  --font-xs: 0.75rem;
+  --font-sm: 0.875rem;
+  --font-base: 1rem;
+  --font-lg: 1.125rem;
+  --font-xl: 1.25rem;
+  
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+}
+
+/* =============================================================================
+   MAIN CONTAINER
+   ============================================================================= */
+
+.pdfhistorytable-container {
+  background: linear-gradient(135deg, var(--dark-gray), var(--medium-gray));
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-dark);
+  color: var(--text-light);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* =============================================================================
+   HEADER SECTION
+   ============================================================================= */
+
+.pdfhistorytable-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-6);
+  background: linear-gradient(135deg, var(--primary-red), var(--dark-red));
+  color: var(--white);
+  border-bottom: var(--border-gray);
+}
+
+.pdfhistorytable-header-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.pdfhistorytable-header-icon {
+  width: var(--space-8);
+  height: var(--space-8);
+  flex-shrink: 0;
+}
+
+.pdfhistorytable-title {
+  font-size: var(--font-xl);
+  font-weight: 700;
+  margin: 0;
+  color: var(--white);
+}
+
+.pdfhistorytable-count {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-1) var(--space-3);
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-xs);
+  font-weight: 600;
+  color: var(--white);
+}
+
+.pdfhistorytable-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+/* =============================================================================
+   SEARCH & FILTERS
+   ============================================================================= */
+
+.pdfhistorytable-search-container {
+  position: relative;
+  min-width: 300px;
+}
+
+.pdfhistorytable-search-icon {
+  position: absolute;
+  left: var(--space-3);
+  top: 50%;
+  transform: translateY(-50%);
+  width: var(--space-4);
+  height: var(--space-4);
+  color: var(--text-gray);
+  pointer-events: none;
+}
+
+.pdfhistorytable-search-input {
+  width: 100%;
+  padding: var(--space-2) var(--space-3) var(--space-2) var(--space-10);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius-md);
+  color: var(--white);
+  font-size: var(--font-sm);
+  transition: all var(--transition-normal);
+}
+
+.pdfhistorytable-search-input:focus {
+  outline: none;
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.4);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+}
+
+.pdfhistorytable-search-input::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.pdfhistorytable-filters {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.pdfhistorytable-filter-select {
+  padding: var(--space-2) var(--space-3);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius-md);
+  color: var(--white);
+  font-size: var(--font-sm);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+}
+
+.pdfhistorytable-filter-select:focus {
+  outline: none;
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.pdfhistorytable-filter-select option {
+  background: var(--dark-gray);
+  color: var(--text-light);
+}
+
+/* =============================================================================
+   BULK ACTIONS BAR
+   ============================================================================= */
+
+.pdfhistorytable-bulk-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4) var(--space-6);
+  background: var(--primary-black);
+  border-bottom: var(--border-gray);
+  animation: pdfhistorytable-bulk-slide-down 0.2s ease-out;
+}
+
+@keyframes pdfhistorytable-bulk-slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.pdfhistorytable-bulk-selected {
+  font-size: var(--font-sm);
+  font-weight: 600;
+  color: var(--primary-red);
+}
+
+.pdfhistorytable-bulk-buttons {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.pdfhistorytable-bulk-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  background: var(--primary-red);
+  color: var(--white);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--font-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+}
+
+.pdfhistorytable-bulk-btn:hover {
+  background: var(--dark-red);
+  transform: translateY(-1px);
+}
+
+.pdfhistorytable-bulk-btn.secondary {
+  background: var(--medium-gray);
+  color: var(--text-light);
+}
+
+.pdfhistorytable-bulk-btn.secondary:hover {
+  background: var(--light-gray);
+}
+
+.pdfhistorytable-bulk-icon {
+  width: var(--space-4);
+  height: var(--space-4);
+}
+
+/* =============================================================================
+   TABLE CONTAINER & STATES
+   ============================================================================= */
+
+.pdfhistorytable-wrapper {
+  background: var(--primary-black);
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.pdfhistorytable-loading,
+.pdfhistorytable-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-12) var(--space-6);
+  text-align: center;
+}
+
+.pdfhistorytable-loading-icon,
+.pdfhistorytable-empty-icon {
+  width: var(--space-12);
+  height: var(--space-12);
+  color: var(--text-gray);
+  margin-bottom: var(--space-4);
+}
+
+.pdfhistorytable-loading-icon {
+  animation: pdfhistorytable-spin 2s linear infinite;
+}
+
+@keyframes pdfhistorytable-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.pdfhistorytable-empty-title {
+  font-size: var(--font-lg);
+  font-weight: 600;
+  color: var(--text-light);
+  margin: 0 0 var(--space-2) 0;
+}
+
+.pdfhistorytable-empty-desc {
+  font-size: var(--font-sm);
+  color: var(--text-gray);
+  margin: 0;
+  max-width: 400px;
+}
+
+/* =============================================================================
+   TABLE STRUCTURE
+   ============================================================================= */
+
+.pdfhistorytable-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-sm);
+}
+
+.pdfhistorytable-thead {
+  background: linear-gradient(135deg, var(--medium-gray), var(--light-gray));
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.pdfhistorytable-header-row {
+  border-bottom: var(--border-gray);
+}
+
+.pdfhistorytable-th {
+  padding: var(--space-4) var(--space-3);
+  text-align: left;
+  font-weight: 600;
+  color: var(--text-light);
+  background: inherit;
+  border-bottom: var(--border-gray);
+  white-space: nowrap;
+  position: relative;
+}
+
+.pdfhistorytable-th.checkbox {
+  width: var(--space-10);
+  padding-left: var(--space-4);
+}
+
+.pdfhistorytable-th.sortable {
+  cursor: pointer;
+  user-select: none;
+  transition: all var(--transition-normal);
+}
+
+.pdfhistorytable-th.sortable:hover {
+  background: rgba(220, 38, 38, 0.1);
+  color: var(--white);
+}
+
+.pdfhistorytable-th-content {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.pdfhistorytable-th-icon {
+  width: var(--space-4);
+  height: var(--space-4);
+  color: var(--text-gray);
+  flex-shrink: 0;
+}
+
+.pdfhistorytable-sort-indicator {
+  width: 0;
+  height: 0;
+  margin-left: var(--space-1);
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+}
+
+.pdfhistorytable-sort-indicator.asc {
+  border-bottom: 6px solid var(--primary-red);
+}
+
+.pdfhistorytable-sort-indicator.desc {
+  border-top: 6px solid var(--primary-red);
+}
+
+/* =============================================================================
+   TABLE BODY & ROWS
+   ============================================================================= */
+
+.pdfhistorytable-tbody {
+  background: var(--primary-black);
+}
+
+.pdfhistorytable-row {
+  border-bottom: 1px solid var(--medium-gray);
+  transition: all var(--transition-fast);
+}
+
+.pdfhistorytable-row:hover {
+  background: linear-gradient(135deg, var(--medium-gray), rgba(220, 38, 38, 0.05));
+}
+
+.pdfhistorytable-row:last-child {
+  border-bottom: none;
+}
+
+.pdfhistorytable-td {
+  padding: var(--space-4) var(--space-3);
+  vertical-align: middle;
+  color: var(--text-light);
+}
+
+.pdfhistorytable-td.checkbox {
+  width: var(--space-10);
+  padding-left: var(--space-4);
+}
+
+.pdfhistorytable-checkbox {
+  width: var(--space-4);
+  height: var(--space-4);
+  accent-color: var(--primary-red);
+  cursor: pointer;
+}
+
+/* =============================================================================
+   CELL CONTENT STYLES
+   ============================================================================= */
+
+.pdfhistorytable-file-info,
+.pdfhistorytable-project-info,
+.pdfhistorytable-customer-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.pdfhistorytable-file-name,
+.pdfhistorytable-project-name,
+.pdfhistorytable-customer-name {
+  font-weight: 500;
+  color: var(--text-light);
+}
+
+.pdfhistorytable-file-meta,
+.pdfhistorytable-project-id {
+  font-size: var(--font-xs);
+  color: var(--text-gray);
+}
+
+.pdfhistorytable-template-badge {
+  display: inline-block;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.pdfhistorytable-template-badge.detailed {
+  background: rgba(239, 68, 68, 0.2);
+  color: var(--accent-red);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.pdfhistorytable-template-badge.standard {
+  background: rgba(245, 158, 11, 0.2);
+  color: var(--warning-yellow);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.pdfhistorytable-template-badge.simple {
+  background: rgba(5, 150, 105, 0.2);
+  color: var(--success-green);
+  border: 1px solid rgba(5, 150, 105, 0.3);
+}
+
+.pdfhistorytable-template-badge.default {
+  background: rgba(156, 163, 175, 0.2);
+  color: var(--text-gray);
+  border: 1px solid rgba(156, 163, 175, 0.3);
+}
+
+.pdfhistorytable-amount {
+  font-weight: 600;
+  font-family: 'Monaco', 'Menlo', monospace;
+  color: var(--success-light);
+}
+
+.pdfhistorytable-status {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.pdfhistorytable-status-icon {
+  width: var(--space-4);
+  height: var(--space-4);
+  flex-shrink: 0;
+}
+
+.pdfhistorytable-status-icon.success {
+  color: var(--success-green);
+}
+
+.pdfhistorytable-status-icon.warning {
+  color: var(--warning-yellow);
+}
+
+.pdfhistorytable-status-icon.danger {
+  color: var(--danger-red);
+}
+
+.pdfhistorytable-status-text {
+  font-size: var(--font-xs);
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.pdfhistorytable-status-text.generated,
+.pdfhistorytable-status-text.completed {
+  color: var(--success-light);
+}
+
+.pdfhistorytable-status-text.generating,
+.pdfhistorytable-status-text.in_progress {
+  color: var(--warning-yellow);
+}
+
+.pdfhistorytable-status-text.failed,
+.pdfhistorytable-status-text.error {
+  color: var(--danger-red);
+}
+
+.pdfhistorytable-date {
+  font-size: var(--font-xs);
+  color: var(--text-gray);
+  font-family: 'Monaco', 'Menlo', monospace;
+}
+
+/* =============================================================================
+   ACTION BUTTONS
+   ============================================================================= */
+
+.pdfhistorytable-actions {
+  display: flex;
+  gap: var(--space-2);
+  justify-content: flex-end;
+}
+
+.pdfhistorytable-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--space-8);
+  height: var(--space-8);
+  background: var(--medium-gray);
+  border: var(--border-gray);
+  border-radius: var(--radius-md);
+  color: var(--text-gray);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  flex-shrink: 0;
+}
+
+.pdfhistorytable-action-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-subtle);
+}
+
+.pdfhistorytable-action-btn.download:hover {
+  background: var(--success-green);
+  border-color: var(--success-green);
+  color: var(--white);
+}
+
+.pdfhistorytable-action-btn.preview:hover {
+  background: var(--warning-yellow);
+  border-color: var(--warning-yellow);
+  color: var(--primary-black);
+}
+
+.pdfhistorytable-action-btn.email:hover {
+  background: #3b82f6;
+  border-color: #3b82f6;
+  color: var(--white);
+}
+
+.pdfhistorytable-action-btn.share:hover {
+  background: #8b5cf6;
+  border-color: #8b5cf6;
+  color: var(--white);
+}
+
+.pdfhistorytable-action-btn.regenerate:hover {
+  background: var(--primary-red);
+  border-color: var(--primary-red);
+  color: var(--white);
+}
+
+.pdfhistorytable-action-btn.delete:hover {
+  background: var(--danger-red);
+  border-color: var(--danger-red);
+  color: var(--white);
+}
+
+.pdfhistorytable-action-icon {
+  width: var(--space-4);
+  height: var(--space-4);
+}
+
+/* =============================================================================
+   RESPONSIVE DESIGN
+   ============================================================================= */
+
+@media (max-width: 1200px) {
+  .pdfhistorytable-search-container {
+    min-width: 250px;
+  }
+  
+  .pdfhistorytable-controls {
+    gap: var(--space-3);
+  }
+}
+
+@media (max-width: 768px) {
+  .pdfhistorytable-header {
+    flex-direction: column;
+    gap: var(--space-4);
+    align-items: stretch;
+  }
+
+  .pdfhistorytable-controls {
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .pdfhistorytable-search-container {
+    min-width: auto;
+  }
+
+  .pdfhistorytable-filters {
+    justify-content: stretch;
+  }
+
+  .pdfhistorytable-filter-select {
+    flex: 1;
+  }
+
+  .pdfhistorytable-bulk-actions {
+    flex-direction: column;
+    gap: var(--space-3);
+    align-items: stretch;
+  }
+
+  .pdfhistorytable-bulk-buttons {
+    justify-content: center;
+  }
+
+  /* Hide less important columns on mobile */
+  .pdfhistorytable-th:nth-child(6), /* Amount */
+  .pdfhistorytable-td:nth-child(6),
+  .pdfhistorytable-th:nth-child(8), /* Date */
+  .pdfhistorytable-td:nth-child(8) {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .pdfhistorytable-container {
+    margin: var(--space-2);
+  }
+
+  .pdfhistorytable-header {
+    padding: var(--space-4);
+  }
+
+  .pdfhistorytable-bulk-actions {
+    padding: var(--space-3) var(--space-4);
+  }
+
+  .pdfhistorytable-th,
+  .pdfhistorytable-td {
+    padding: var(--space-2);
+  }
+
+  /* Further hide columns on small screens */
+  .pdfhistorytable-th:nth-child(5), /* Template */
+  .pdfhistorytable-td:nth-child(5) {
+    display: none;
+  }
+
+  .pdfhistorytable-actions {
+    flex-direction: column;
+    gap: var(--space-1);
+  }
+}
+
+/* =============================================================================
+   ACCESSIBILITY
+   ============================================================================= */
+
+.pdfhistorytable-search-input:focus,
+.pdfhistorytable-filter-select:focus,
+.pdfhistorytable-checkbox:focus,
+.pdfhistorytable-action-btn:focus,
+.pdfhistorytable-bulk-btn:focus {
+  outline: 2px solid var(--primary-red);
+  outline-offset: 2px;
+}
+
+.pdfhistorytable-th.sortable:focus {
+  outline: 2px solid var(--primary-red);
+  outline-offset: -2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .pdfhistorytable-container {
+    border: 2px solid var(--white);
+  }
+
+  .pdfhistorytable-row:hover {
+    background: var(--primary-red);
+    color: var(--white);
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .pdfhistorytable-loading-icon,
+  .pdfhistorytable-bulk-actions,
+  .pdfhistorytable-action-btn,
+  .pdfhistorytable-row {
+    animation: none;
+    transition: none;
+  }
+}

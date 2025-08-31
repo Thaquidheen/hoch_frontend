@@ -1,0 +1,951 @@
+/* PDFTemplateSelector.css - Black/Red/Grey Theme */
+
+/* CSS Variables for Consistent Theming */
+:root {
+  --primary-red: #dc2626;
+  --dark-red: #b91c1c;
+  --darker-red: #991b1b;
+  --accent-red: #ef4444;
+  --light-red: rgba(220, 38, 38, 0.1);
+  
+  --primary-black: #000000;
+  --dark-gray: #0a0a0a;
+  --medium-gray: #1a1a1a;
+  --light-gray: #374151;
+  --lighter-gray: #4b5563;
+  --text-gray: #9ca3af;
+  --text-light: #d1d5db;
+  --white: #ffffff;
+  
+  --success-green: #059669;
+  --success-light: #10b981;
+  --warning-yellow: #f59e0b;
+  --info-blue: #3b82f6;
+  --purple: #8b5cf6;
+  
+  --border-primary: 1px solid var(--primary-red);
+  --border-gray: 1px solid var(--light-gray);
+  --shadow-red: 0 4px 8px rgba(220, 38, 38, 0.3);
+  --shadow-dark: 0 8px 25px rgba(0, 0, 0, 0.5);
+  --shadow-glow: 0 8px 25px rgba(220, 38, 38, 0.15);
+  --shadow-subtle: 0 2px 8px rgba(0, 0, 0, 0.2);
+  --shadow-card: 0 4px 16px rgba(0, 0, 0, 0.3);
+  
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.2s ease;
+  --transition-slow: 0.3s ease;
+  
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  
+  --font-xs: 0.75rem;
+  --font-sm: 0.875rem;
+  --font-base: 1rem;
+  --font-lg: 1.125rem;
+  --font-xl: 1.25rem;
+  --font-2xl: 1.5rem;
+  
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+}
+
+/* =============================================================================
+   MAIN CONTAINER
+   ============================================================================= */
+
+.pdftemplateselector-container {
+  background: linear-gradient(135deg, var(--dark-gray), var(--medium-gray));
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: var(--shadow-dark);
+  color: var(--text-light);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* =============================================================================
+   HEADER SECTION
+   ============================================================================= */
+
+.pdftemplateselector-header {
+  padding: var(--space-6) var(--space-6) var(--space-4) var(--space-6);
+  background: linear-gradient(135deg, var(--primary-red), var(--dark-red));
+  color: var(--white);
+  border-bottom: var(--border-gray);
+}
+
+.pdftemplateselector-header-content {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+.pdftemplateselector-header-icon {
+  width: var(--space-10);
+  height: var(--space-10);
+  flex-shrink: 0;
+  color: var(--white);
+}
+
+.pdftemplateselector-header-text {
+  flex: 1;
+}
+
+.pdftemplateselector-title {
+  font-size: var(--font-2xl);
+  font-weight: 700;
+  margin: 0 0 var(--space-2) 0;
+  color: var(--white);
+}
+
+.pdftemplateselector-subtitle {
+  font-size: var(--font-base);
+  margin: 0;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* =============================================================================
+   CATEGORY FILTERS
+   ============================================================================= */
+
+.pdftemplateselector-categories {
+  display: flex;
+  gap: var(--space-2);
+  overflow-x: auto;
+  padding-bottom: var(--space-2);
+}
+
+.pdftemplateselector-category-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius-md);
+  font-size: var(--font-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.pdftemplateselector-category-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-1px);
+}
+
+.pdftemplateselector-category-btn.active {
+  background: var(--white);
+  color: var(--primary-red);
+  border-color: var(--white);
+  font-weight: 600;
+}
+
+.pdftemplateselector-category-icon {
+  width: var(--space-4);
+  height: var(--space-4);
+  flex-shrink: 0;
+}
+
+.pdftemplateselector-category-label {
+  flex: 1;
+}
+
+.pdftemplateselector-category-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--space-5);
+  height: var(--space-5);
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-xs);
+  font-weight: 600;
+  line-height: 1;
+}
+
+.pdftemplateselector-category-btn.active .pdftemplateselector-category-count {
+  background: var(--primary-red);
+  color: var(--white);
+}
+
+/* =============================================================================
+   CONTENT SECTION
+   ============================================================================= */
+
+.pdftemplateselector-content {
+  padding: var(--space-6);
+  background: var(--primary-black);
+}
+
+.pdftemplateselector-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-12) var(--space-6);
+  text-align: center;
+}
+
+.pdftemplateselector-empty-icon {
+  width: var(--space-12);
+  height: var(--space-12);
+  color: var(--text-gray);
+  margin-bottom: var(--space-4);
+}
+
+.pdftemplateselector-empty-title {
+  font-size: var(--font-lg);
+  font-weight: 600;
+  color: var(--text-light);
+  margin: 0 0 var(--space-2) 0;
+}
+
+.pdftemplateselector-empty-desc {
+  font-size: var(--font-sm);
+  color: var(--text-gray);
+  margin: 0;
+}
+
+/* =============================================================================
+   TEMPLATES GRID
+   ============================================================================= */
+
+.pdftemplateselector-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: var(--space-6);
+}
+
+@media (min-width: 1200px) {
+  .pdftemplateselector-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* =============================================================================
+   TEMPLATE CARDS
+   ============================================================================= */
+
+.pdftemplateselector-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(135deg, var(--medium-gray), var(--light-gray));
+  border: var(--border-gray);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  box-shadow: var(--shadow-card);
+}
+
+.pdftemplateselector-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--text-gray), var(--light-gray));
+  transition: all var(--transition-normal);
+}
+
+.pdftemplateselector-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-glow);
+  border-color: var(--primary-red);
+}
+
+.pdftemplateselector-card:hover::before {
+  background: linear-gradient(90deg, var(--primary-red), var(--accent-red));
+}
+
+.pdftemplateselector-card.selected {
+  border-color: var(--primary-red);
+  box-shadow: var(--shadow-red);
+  transform: translateY(-2px);
+}
+
+.pdftemplateselector-card.selected::before {
+  background: linear-gradient(90deg, var(--primary-red), var(--accent-red));
+}
+
+/* Color scheme variations */
+.pdftemplateselector-card.professional::before {
+  background: linear-gradient(90deg, var(--accent-red), var(--primary-red));
+}
+
+.pdftemplateselector-card.balanced::before {
+  background: linear-gradient(90deg, var(--warning-yellow), #f59e0b);
+}
+
+.pdftemplateselector-card.minimal::before {
+  background: linear-gradient(90deg, var(--success-green), var(--success-light));
+}
+
+/* =============================================================================
+   CARD HEADER
+   ============================================================================= */
+
+.pdftemplateselector-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: var(--space-6) var(--space-6) var(--space-4) var(--space-6);
+}
+
+.pdftemplateselector-card-header-left {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-4);
+  flex: 1;
+}
+
+.pdftemplateselector-template-type-icon {
+  width: var(--space-8);
+  height: var(--space-8);
+  flex-shrink: 0;
+  margin-top: var(--space-1);
+}
+
+.pdftemplateselector-template-type-icon.detailed {
+  color: var(--accent-red);
+}
+
+.pdftemplateselector-template-type-icon.standard {
+  color: var(--warning-yellow);
+}
+
+.pdftemplateselector-template-type-icon.simple {
+  color: var(--success-green);
+}
+
+.pdftemplateselector-card-title-section {
+  flex: 1;
+}
+
+.pdftemplateselector-card-title {
+  font-size: var(--font-lg);
+  font-weight: 700;
+  margin: 0 0 var(--space-2) 0;
+  color: var(--text-light);
+}
+
+.pdftemplateselector-card-badges {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.pdftemplateselector-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.pdftemplateselector-badge.popular {
+  background: rgba(245, 158, 11, 0.2);
+  color: var(--warning-yellow);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.pdftemplateselector-badge.type.detailed {
+  background: rgba(239, 68, 68, 0.2);
+  color: var(--accent-red);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.pdftemplateselector-badge.type.standard {
+  background: rgba(245, 158, 11, 0.2);
+  color: var(--warning-yellow);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.pdftemplateselector-badge.type.simple {
+  background: rgba(5, 150, 105, 0.2);
+  color: var(--success-green);
+  border: 1px solid rgba(5, 150, 105, 0.3);
+}
+
+.pdftemplateselector-badge-icon {
+  width: var(--space-3);
+  height: var(--space-3);
+}
+
+.pdftemplateselector-selected-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--space-8);
+  height: var(--space-8);
+  background: var(--primary-red);
+  border-radius: 50%;
+  animation: pdftemplateselector-selected-bounce 0.3s ease-out;
+}
+
+@keyframes pdftemplateselector-selected-bounce {
+  0% { transform: scale(0); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+.pdftemplateselector-selected-icon {
+  width: var(--space-5);
+  height: var(--space-5);
+  color: var(--white);
+}
+
+/* =============================================================================
+   CARD CONTENT
+   ============================================================================= */
+
+.pdftemplateselector-card-description {
+  padding: 0 var(--space-6) var(--space-4) var(--space-6);
+}
+
+.pdftemplateselector-description-text {
+  font-size: var(--font-sm);
+  color: var(--text-gray);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.pdftemplateselector-card-features {
+  padding: 0 var(--space-6) var(--space-4) var(--space-6);
+}
+
+.pdftemplateselector-features-title {
+  font-size: var(--font-sm);
+  font-weight: 600;
+  color: var(--text-light);
+  margin: 0 0 var(--space-3) 0;
+}
+
+.pdftemplateselector-features-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.pdftemplateselector-feature-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.pdftemplateselector-feature-item.more {
+  justify-content: center;
+  margin-top: var(--space-1);
+}
+
+.pdftemplateselector-feature-icon {
+  width: var(--space-3);
+  height: var(--space-3);
+  color: var(--success-green);
+  flex-shrink: 0;
+}
+
+.pdftemplateselector-feature-text {
+  font-size: var(--font-xs);
+  color: var(--text-light);
+  flex: 1;
+}
+
+.pdftemplateselector-feature-more {
+  font-size: var(--font-xs);
+  color: var(--text-gray);
+  font-style: italic;
+}
+
+/* =============================================================================
+   CARD STATS & METADATA
+   ============================================================================= */
+
+.pdftemplateselector-card-stats {
+  display: flex;
+  gap: var(--space-4);
+  padding: 0 var(--space-6) var(--space-4) var(--space-6);
+}
+
+.pdftemplateselector-stat-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.pdftemplateselector-stat-icon {
+  width: var(--space-3);
+  height: var(--space-3);
+  color: var(--text-gray);
+  flex-shrink: 0;
+}
+
+.pdftemplateselector-stat-text {
+  font-size: var(--font-xs);
+  color: var(--text-gray);
+}
+
+.pdftemplateselector-card-bestfor {
+  padding: var(--space-3) var(--space-6);
+  background: rgba(0, 0, 0, 0.3);
+  border-top: 1px solid var(--medium-gray);
+  border-bottom: 1px solid var(--medium-gray);
+  margin-bottom: var(--space-4);
+}
+
+.pdftemplateselector-bestfor-label {
+  font-size: var(--font-xs);
+  font-weight: 600;
+  color: var(--primary-red);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-right: var(--space-2);
+}
+
+.pdftemplateselector-bestfor-text {
+  font-size: var(--font-xs);
+  color: var(--text-light);
+}
+
+/* =============================================================================
+   CARD ACTIONS
+   ============================================================================= */
+
+.pdftemplateselector-card-actions {
+  padding: var(--space-4) var(--space-6) var(--space-6) var(--space-6);
+  margin-top: auto;
+}
+
+.pdftemplateselector-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--font-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+}
+
+.pdftemplateselector-action-btn.primary {
+  width: 100%;
+  background: linear-gradient(135deg, var(--primary-red), var(--dark-red));
+  color: var(--white);
+  border: 1px solid var(--primary-red);
+  margin-bottom: var(--space-3);
+}
+
+.pdftemplateselector-action-btn.primary:hover {
+  background: linear-gradient(135deg, var(--dark-red), var(--darker-red));
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-red);
+}
+
+.pdftemplateselector-action-btn.primary.selected {
+  background: linear-gradient(135deg, var(--success-green), #047857);
+  border-color: var(--success-green);
+}
+
+.pdftemplateselector-secondary-actions {
+  display: flex;
+  gap: var(--space-2);
+  justify-content: center;
+}
+
+.pdftemplateselector-action-btn.secondary {
+  width: var(--space-10);
+  height: var(--space-10);
+  background: var(--medium-gray);
+  color: var(--text-gray);
+  border: var(--border-gray);
+}
+
+.pdftemplateselector-action-btn.secondary:hover {
+  background: var(--light-gray);
+  color: var(--text-light);
+  border-color: var(--primary-red);
+  transform: translateY(-1px);
+}
+
+.pdftemplateselector-action-icon {
+  width: var(--space-4);
+  height: var(--space-4);
+  flex-shrink: 0;
+}
+
+/* =============================================================================
+   CARD OVERLAY
+   ============================================================================= */
+
+.pdftemplateselector-card-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: all var(--transition-normal);
+}
+
+.pdftemplateselector-card:hover .pdftemplateselector-card-overlay {
+  opacity: 1;
+  visibility: visible;
+}
+
+.pdftemplateselector-overlay-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  text-align: center;
+  color: var(--white);
+}
+
+.pdftemplateselector-overlay-icon {
+  width: var(--space-8);
+  height: var(--space-8);
+  color: var(--primary-red);
+}
+
+.pdftemplateselector-overlay-text {
+  font-size: var(--font-sm);
+  font-weight: 500;
+}
+
+/* =============================================================================
+   FOOTER COMPARISON
+   ============================================================================= */
+
+.pdftemplateselector-footer {
+  padding: var(--space-6);
+  background: var(--medium-gray);
+  border-top: var(--border-gray);
+}
+
+.pdftemplateselector-comparison {
+  display: flex;
+  gap: var(--space-4);
+  align-items: flex-start;
+}
+
+.pdftemplateselector-comparison-icon {
+  width: var(--space-6);
+  height: var(--space-6);
+  color: var(--primary-red);
+  flex-shrink: 0;
+  margin-top: var(--space-1);
+}
+
+.pdftemplateselector-comparison-content {
+  flex: 1;
+}
+
+.pdftemplateselector-comparison-title {
+  font-size: var(--font-base);
+  font-weight: 600;
+  color: var(--text-light);
+  margin: 0 0 var(--space-3) 0;
+}
+
+.pdftemplateselector-comparison-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--space-4);
+}
+
+.pdftemplateselector-comparison-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-3);
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--light-gray);
+}
+
+.pdftemplateselector-comparison-name {
+  font-size: var(--font-sm);
+  font-weight: 600;
+  color: var(--text-light);
+}
+
+.pdftemplateselector-comparison-pages,
+.pdftemplateselector-comparison-features {
+  font-size: var(--font-xs);
+  color: var(--text-gray);
+}
+
+/* =============================================================================
+   RESPONSIVE DESIGN
+   ============================================================================= */
+
+@media (max-width: 1024px) {
+  .pdftemplateselector-grid {
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--space-4);
+  }
+}
+
+@media (max-width: 768px) {
+  .pdftemplateselector-header {
+    padding: var(--space-4);
+  }
+
+  .pdftemplateselector-header-content {
+    flex-direction: column;
+    text-align: center;
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
+  }
+
+  .pdftemplateselector-header-icon {
+    width: var(--space-8);
+    height: var(--space-8);
+  }
+
+  .pdftemplateselector-title {
+    font-size: var(--font-xl);
+  }
+
+  .pdftemplateselector-categories {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .pdftemplateselector-content {
+    padding: var(--space-4);
+  }
+
+  .pdftemplateselector-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+  }
+
+  .pdftemplateselector-card-header {
+    padding: var(--space-4) var(--space-4) var(--space-3) var(--space-4);
+  }
+
+  .pdftemplateselector-card-header-left {
+    gap: var(--space-3);
+  }
+
+  .pdftemplateselector-template-type-icon {
+    width: var(--space-6);
+    height: var(--space-6);
+  }
+
+  .pdftemplateselector-card-description,
+  .pdftemplateselector-card-features,
+  .pdftemplateselector-card-stats {
+    padding-left: var(--space-4);
+    padding-right: var(--space-4);
+  }
+
+  .pdftemplateselector-card-bestfor {
+    padding: var(--space-3) var(--space-4);
+  }
+
+  .pdftemplateselector-card-actions {
+    padding: var(--space-4) var(--space-4) var(--space-4) var(--space-4);
+  }
+
+  .pdftemplateselector-footer {
+    padding: var(--space-4);
+  }
+
+  .pdftemplateselector-comparison {
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .pdftemplateselector-comparison-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-3);
+  }
+}
+
+@media (max-width: 640px) {
+  .pdftemplateselector-header {
+    padding: var(--space-3);
+  }
+
+  .pdftemplateselector-content {
+    padding: var(--space-3);
+  }
+
+  .pdftemplateselector-grid {
+    gap: var(--space-3);
+  }
+
+  .pdftemplateselector-card-header {
+    padding: var(--space-3) var(--space-3) var(--space-2) var(--space-3);
+  }
+
+  .pdftemplateselector-card-description,
+  .pdftemplateselector-card-features,
+  .pdftemplateselector-card-stats {
+    padding-left: var(--space-3);
+    padding-right: var(--space-3);
+  }
+
+  .pdftemplateselector-card-bestfor {
+    padding: var(--space-2) var(--space-3);
+  }
+
+  .pdftemplateselector-card-actions {
+    padding: var(--space-3);
+  }
+
+  .pdftemplateselector-categories {
+    gap: var(--space-1);
+  }
+
+  .pdftemplateselector-category-btn {
+    padding: var(--space-2) var(--space-3);
+    font-size: var(--font-xs);
+  }
+
+  .pdftemplateselector-card-stats {
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+}
+
+@media (max-width: 480px) {
+  .pdftemplateselector-header-content {
+    gap: var(--space-2);
+  }
+
+  .pdftemplateselector-title {
+    font-size: var(--font-lg);
+  }
+
+  .pdftemplateselector-subtitle {
+    font-size: var(--font-sm);
+  }
+
+  .pdftemplateselector-card-header-left {
+    gap: var(--space-2);
+  }
+
+  .pdftemplateselector-template-type-icon {
+    width: var(--space-5);
+    height: var(--space-5);
+  }
+
+  .pdftemplateselector-card-title {
+    font-size: var(--font-base);
+  }
+
+  .pdftemplateselector-secondary-actions {
+    gap: var(--space-1);
+  }
+
+  .pdftemplateselector-action-btn.secondary {
+    width: var(--space-8);
+    height: var(--space-8);
+  }
+}
+
+/* =============================================================================
+   ACCESSIBILITY
+   ============================================================================= */
+
+.pdftemplateselector-category-btn:focus,
+.pdftemplateselector-card:focus,
+.pdftemplateselector-action-btn:focus {
+  outline: 2px solid var(--primary-red);
+  outline-offset: 2px;
+}
+
+.pdftemplateselector-card:focus .pdftemplateselector-card-overlay {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .pdftemplateselector-container {
+    border: 2px solid var(--white);
+  }
+
+  .pdftemplateselector-card {
+    border: 2px solid var(--text-light);
+  }
+
+  .pdftemplateselector-card.selected {
+    border: 2px solid var(--primary-red);
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .pdftemplateselector-card,
+  .pdftemplateselector-category-btn,
+  .pdftemplateselector-action-btn,
+  .pdftemplateselector-card-overlay,
+  .pdftemplateselector-selected-indicator {
+    animation: none;
+    transition: none;
+  }
+
+  .pdftemplateselector-card:hover,
+  .pdftemplateselector-category-btn:hover,
+  .pdftemplateselector-action-btn:hover {
+    transform: none;
+  }
+}
+
+/* Print styles */
+@media print {
+  .pdftemplateselector-container {
+    box-shadow: none;
+    border: 1px solid #000;
+  }
+
+  .pdftemplateselector-card-overlay {
+    display: none;
+  }
+}
+
+/* Dark mode adjustments (if needed) */
+@media (prefers-color-scheme: dark) {
+  .pdftemplateselector-container {
+    /* Already optimized for dark theme */
+  }
+}

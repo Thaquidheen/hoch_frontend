@@ -18,6 +18,9 @@ import {
   Lightbulb,
   RefreshCw,
   ImageIcon, // Added for plan images
+  Download,
+  Mail,
+  History as HistoryIcon // Renamed to avoid conflict with component
 } from 'lucide-react';
 
 import LineItemsList from '../../components/quotations/projects/LineItemsList';
@@ -34,31 +37,46 @@ import PlanImagesManager from '../../components/quotations/projects/PlanImagesMa
 import { usePlanImages } from '../../hooks/masters/usePlanImages';
 import api from '../../service/api';
 
-import { History } from 'lucide-react';
+// NEW: Added PDF-related imports
+import PDFGenerationModal from '../../components/quotations/PDFGenerationModal';
+import PDFHistoryTable from '../../components/quotations/PDFHistoryTable';
+import useQuotationPDF from '../../hooks/quotations/useQuotationPDF'; // Fixed incomplete import
 
 import './ProjectDetailPage.css';
+
 
 const ProjectDetailPage = () => {
   const { projectId } = useParams();
   const navigate = useNavigate();
+  
   // State Management
   const [project, setProject] = useState(null);
   const [showLineItemForm, setShowLineItemForm] = useState(false);
   const [editingLineItem, setEditingLineItem] = useState(null);
   const [notification, setNotification] = useState(null);
-  const [activeTab, setActiveTab] = useState('line-items');
+  const [activeTab, setActiveTab] = useState('line-items'); // Updated to include pdf tab
   const [lightingConfig, setLightingConfig] = useState(null);
   const [lightingItems, setLightingItems] = useState([]);
   const [showLightingItemForm, setShowLightingItemForm] = useState(false);
   const [editingLightingItem, setEditingLightingItem] = useState(null);
   const [loading, setLoading] = useState(false);
 
-
+  // NEW: Added PDF-related states
   const [selectedPdfForEmail, setSelectedPdfForEmail] = useState(null);
+  const [showPDFModal, setShowPDFModal] = useState(false);
+  const [pdfLoading, setPdfLoading] = useState(false);
+  const [showPDFHistory, setShowPDFHistory] = useState(false);
 
-
-
-
+  // NEW: Updated PDF hook destructuring with all required functions
+  const {
+    pdfHistory,
+    templates,
+    generatePDF: generateQuotationPDF,
+    downloadPDF,
+    emailPDF,
+    previewPDF,
+    loading: pdfHookLoading
+  } = useQuotationPDF();
 
   // Hooks
   const {
@@ -101,8 +119,70 @@ const ProjectDetailPage = () => {
 
   const { lightingRules } = useLightingRules();
 
+  // NEW: Updated PDF handlers with complete implementations
+  const handleGeneratePDF = async (projectId, templateType, customizations = {}) => {
+    try {
+      setPdfLoading(true);
+      const result = await generateQuotationPDF(projectId, templateType, customizations);
+      
+      if (result.success) {
+        console.log('PDF generated successfully:', result);
+        setShowPDFModal(false);
+        
+        // Show success notification
+        showNotification('success', 'PDF generated successfully');
+        
+        // Optionally auto-download
+        if (result.download_url) {
+          window.open(result.download_url, '_blank');
+        }
+      } else {
+        console.error('PDF generation failed:', result.error);
+        showNotification('error', result.error || 'PDF generation failed');
+      }
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      showNotification('error', 'Error generating PDF');
+    } finally {
+      setPdfLoading(false);
+    }
+  };
 
-  
+  const handleDownloadPDF = async (pdf) => {
+    try {
+      await downloadPDF(pdf.id);
+      showNotification('success', 'PDF downloaded successfully');
+    } catch (error) {
+      console.error('Error downloading PDF:', error);
+      showNotification('error', 'Error downloading PDF');
+    }
+  };
+
+  const handleEmailPDF = async (pdf) => {
+    try {
+      const emailData = {
+        recipient_email: project?.customer?.email || '',
+        subject: `Kitchen Quotation - ${project?.name}`,
+        message: 'Please find attached your kitchen quotation.'
+      };
+      
+      await emailPDF(pdf.id, emailData);
+      showNotification('success', 'PDF emailed successfully');
+    } catch (error) {
+      console.error('Error emailing PDF:', error);
+      showNotification('error', 'Error emailing PDF');
+    }
+  };
+
+  const handlePreviewPDF = async (pdf) => {
+    try {
+      await previewPDF(pdf.id);
+    } catch (error) {
+      console.error('Error previewing PDF:', error);
+      showNotification('error', 'Error previewing PDF');
+    }
+  };
+
   // Fetch lighting items when project changes
   useEffect(() => {
     const fetchLightingItems = async () => {
@@ -431,14 +511,19 @@ const ProjectDetailPage = () => {
     showNotification('success', 'Plan images updated successfully');
   };
 
-
-
-
-
   // Helper Functions
   const formatCurrency = (amount) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(amount || 0);
 
   const getStatusClass = (status) => `projectdetail-status-${(status || 'DRAFT').toLowerCase().replace('_', '-')}`;
+
+  // NEW: Updated tab buttons array to include PDF tab
+  const tabButtons = [
+    { key: 'line-items', label: 'Line Items', icon: Package, count: lineItems.length },
+    { key: 'lighting', label: 'Multi-Category Lighting', icon: Lightbulb, count: lightingItems.length },
+    { key: 'accessories', label: 'Accessories', icon: Settings },
+    { key: 'plans', label: 'Plan Images', icon: ImageIcon, count: projectStats.totalPlanImages },
+    { key: 'pdf', label: 'PDF Documents', icon: FileText, count: pdfHistory.filter(pdf => pdf.project_id === projectId).length }
+  ];
 
   // Render Logic
   if (projectLoading) {
@@ -484,22 +569,23 @@ const ProjectDetailPage = () => {
               <button onClick={handleRecalculateProject} className="projectdetail-action-btn projectdetail-secondary" disabled={projectLoading || loading}>
                 <Calculator className="projectdetail-btn-icon" /> Recalculate Totals
               </button>
-                 <div className="pdf-actions-group">
+              {/* NEW: Updated PDF action buttons in header */}
+              <div className="pdf-actions-group">
                 <button 
-
+                  onClick={() => setShowPDFModal(true)}
                   className="projectdetail-action-btn projectdetail-primary"
-
+                  disabled={pdfLoading}
                 >
-             
-                  Generate PDF
+                  <FileText className="projectdetail-btn-icon" />
+                  {pdfLoading ? 'Generating...' : 'Generate PDF'}
                 </button>
                 
                 <button 
-               
+                  onClick={() => setShowPDFHistory(!showPDFHistory)}
                   className="projectdetail-action-btn projectdetail-secondary"
                   title="PDF History"
                 >
-                  <History className="projectdetail-btn-icon" />
+                  <HistoryIcon className="projectdetail-btn-icon" />
                   PDF History
                 </button>
               </div>
@@ -629,36 +715,22 @@ const ProjectDetailPage = () => {
       </div>
 
       <div className="projectdetail-project-content">
+        {/* NEW: Updated tabs rendering to use tabButtons array */}
         <div className="projectdetail-content-tabs">
-          <button 
-            className={`projectdetail-tab-button ${activeTab === 'line-items' ? 'active' : ''}`} 
-            onClick={() => setActiveTab('line-items')}
-          >
-            <Package className="projectdetail-tab-icon" /> Line Items ({lineItems.length})
-          </button>
-          <button 
-            className={`projectdetail-tab-button ${activeTab === 'lighting' ? 'active' : ''}`} 
-            onClick={() => setActiveTab('lighting')}
-          >
-            <Lightbulb className="projectdetail-tab-icon" /> Multi-Category Lighting
-            {lightingItems.length > 0 && <span className="tab-count">{lightingItems.length}</span>}
-          </button>
-          <button 
-            className={`projectdetail-tab-button ${activeTab === 'accessories' ? 'active' : ''}`} 
-            onClick={() => setActiveTab('accessories')}
-          >
-            <Settings className="projectdetail-tab-icon" /> Accessories
-          </button>
-          {/* CORRECTED: Plan Images tab */}
-          <button 
-            className={`projectdetail-tab-button ${activeTab === 'plans' ? 'active' : ''}`} 
-            onClick={() => setActiveTab('plans')}
-          >
-            <ImageIcon className="projectdetail-tab-icon" /> Plan Images
-            {projectStats.totalPlanImages > 0 && (
-              <span className="tab-count">{projectStats.totalPlanImages}</span>
-            )}
-          </button>
+          {tabButtons.map(tab => {
+            const IconComponent = tab.icon;
+            return (
+              <button 
+                key={tab.key}
+                className={`projectdetail-tab-button ${activeTab === tab.key ? 'active' : ''}`} 
+                onClick={() => setActiveTab(tab.key)}
+              >
+                <IconComponent className="projectdetail-tab-icon" /> 
+                {tab.label}
+                {tab.count > 0 && <span className="tab-count">{tab.count}</span>}
+              </button>
+            );
+          })}
         </div>
         
         <div className="projectdetail-tab-content">
@@ -762,12 +834,77 @@ const ProjectDetailPage = () => {
               />
             </div>
           )}
+
+          {/* NEW: PDF tab content */}
+          {activeTab === 'pdf' && (
+            <div className="pdf-tab-section">
+              <div className="pdf-tab-header">
+                <div className="pdf-tab-header-content">
+                  <FileText className="pdf-tab-header-icon" />
+                  <div className="pdf-tab-header-text">
+                    <h3 className="pdf-tab-title">PDF Documents</h3>
+                    <p className="pdf-tab-description">
+                      Generate, manage, and download PDF quotations for this project.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Quick Actions */}
+                <div className="pdf-quick-actions">
+                  <button
+                    onClick={() => setShowPDFModal(true)}
+                    className="pdf-quick-action-btn primary"
+                    disabled={pdfLoading}
+                  >
+                    <FileText className="pdf-action-icon" />
+                    {pdfLoading ? 'Generating PDF...' : 'Generate New PDF'}
+                  </button>
+                  
+                  <button
+                    onClick={() => window.location.reload()}
+                    className="pdf-quick-action-btn secondary"
+                  >
+                    <RefreshCw className="pdf-action-icon" />
+                    Refresh History
+                  </button>
+                </div>
+              </div>
+
+              {/* PDF History Table */}
+              <PDFHistoryTable
+                pdfHistory={pdfHistory.filter(pdf => pdf.project_id === projectId)}
+                loading={pdfHookLoading}
+                onDownload={handleDownloadPDF}
+                onEmail={handleEmailPDF}
+                onPreview={handlePreviewPDF}
+                onRegenerate={(pdf) => {
+                  // Set the modal to regenerate mode
+                  setShowPDFModal(true);
+                }}
+                className="project-pdf-history"
+              />
+
+              {/* Empty State */}
+              {pdfHistory.filter(pdf => pdf.project_id === projectId).length === 0 && !pdfHookLoading && (
+                <div className="pdf-empty-state">
+                  <FileText className="pdf-empty-icon" />
+                  <h4 className="pdf-empty-title">No PDFs Generated Yet</h4>
+                  <p className="pdf-empty-description">
+                    Generate your first PDF quotation to get started.
+                  </p>
+                  <button
+                    onClick={() => setShowPDFModal(true)}
+                    className="pdf-empty-action-btn"
+                  >
+                    <Plus className="pdf-action-icon" />
+                    Generate First PDF
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
-
-
-  
-
 
       {/* Line Item Form */}
       <LineItemForm
@@ -811,6 +948,107 @@ const ProjectDetailPage = () => {
               <AlertTriangle className="projectdetail-notification-icon" />
             )}
             <span>{notification.message}</span>
+          </div>
+        </div>
+      )}
+
+      {/* NEW: PDF Generation Modal */}
+      {showPDFModal && (
+        <PDFGenerationModal
+          isOpen={showPDFModal}
+          onClose={() => setShowPDFModal(false)}
+          projectId={projectId}
+          projectName={project?.name || `Project #${project?.id}` || 'Untitled Project'}
+          onGenerate={handleGeneratePDF}
+          templates={templates}
+          loading={pdfLoading}
+        />
+      )}
+
+      {/* NEW: PDF History Sidebar */}
+      {showPDFHistory && (
+        <div className="pdf-history-sidebar">
+          <div className="pdf-history-sidebar-header">
+            <div className="pdf-history-sidebar-title">
+              <HistoryIcon className="pdf-history-sidebar-icon" />
+              <h3>Recent PDFs</h3>
+            </div>
+            <button
+              onClick={() => setShowPDFHistory(false)}
+              className="pdf-history-close"
+            >
+              <X className="icon" />
+            </button>
+          </div>
+          
+          <div className="pdf-history-sidebar-content">
+            {pdfHistory
+              .filter(pdf => pdf.project_id === projectId)
+              .slice(0, 5)
+              .map(pdf => (
+                <div key={pdf.id} className="pdf-history-item">
+                  <div className="pdf-history-item-info">
+                    <div className="pdf-history-item-header">
+                      <FileText className="pdf-history-item-icon" />
+                      <span className="pdf-history-filename">
+                        {pdf.filename || 'Untitled.pdf'}
+                      </span>
+                    </div>
+                    <div className="pdf-history-item-meta">
+                      <span className="pdf-history-date">
+                        {new Date(pdf.created_at).toLocaleDateString('en-IN', {
+                          month: 'short',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </span>
+                      <span className="pdf-history-template">
+                        {pdf.template_type || 'Default'}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="pdf-history-item-actions">
+                    <button
+                      onClick={() => handleDownloadPDF(pdf)}
+                      className="pdf-history-action download"
+                      title="Download PDF"
+                    >
+                      <Download className="icon" />
+                    </button>
+                    <button
+                      onClick={() => handlePreviewPDF(pdf)}
+                      className="pdf-history-action preview"
+                      title="Preview PDF"
+                    >
+                      <Eye className="icon" />
+                    </button>
+                    <button
+                      onClick={() => handleEmailPDF(pdf)}
+                      className="pdf-history-action email"
+                      title="Email PDF"
+                    >
+                      <Mail className="icon" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+          
+            {pdfHistory.filter(pdf => pdf.project_id === projectId).length === 0 && (
+              <div className="pdf-history-empty">
+                <FileText className="pdf-history-empty-icon" />
+                <p className="pdf-history-empty-text">No PDFs generated yet</p>
+              </div>
+            )}
+          
+            {pdfHistory.filter(pdf => pdf.project_id === projectId).length > 5 && (
+              <button
+                onClick={() => setActiveTab('pdf')}
+                className="pdf-history-view-all"
+              >
+                View All PDFs ({pdfHistory.filter(pdf => pdf.project_id === projectId).length})
+              </button>
+            )}
           </div>
         </div>
       )}
